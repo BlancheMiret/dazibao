@@ -1,0 +1,5 @@
+Asmaa:
+
+Questions:
+
+-Comment représenter la table de données publiées (suite de triplets), une structure?
