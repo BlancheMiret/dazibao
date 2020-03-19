@@ -9,8 +9,8 @@
 
 int main_datagram(char * msg){
     memset(msg, 0, SIZE);
-	uint8_t magic = 0x5d;
-	uint8_t ver = 0x2;
+	uint8_t magic = 0x5F;
+	uint8_t ver = 0x1;
 	memcpy(msg, &magic, 1);
 	memcpy(msg+1, &ver, 1);
 	return MSG_HEADER;
@@ -75,7 +75,7 @@ int Neighbour_request(char * neighbourReq) {
 
 
 int Neighbour(char * neigbour, struct in6_addr IP, in_port_t port) {
-	memset(neigbour, 0, BUF_SIZE-MSG_HEADER);
+	memset(neigbour, 0, SIZE-MSG_HEADER);
 	uint8_t type = 0x3;
 	//len = 18
 	uint8_t len = 0x12;
@@ -87,36 +87,103 @@ int Neighbour(char * neigbour, struct in6_addr IP, in_port_t port) {
 }
 
 
-//Creation de Network Hash  (Type de Network Hash???)
 
+//Creation de Network Hash  
+
+
+int Network_hash(char * network_hash, char * hash){
+    memset(network_hash, 0, SIZE-MSG_HEADER);
+
+	uint8_t type = 0x4;
+
+ 	uint8_t len = 0x0;
+	memcpy(network_req, &type, 1);
+	memcpy(network_req+1, &len, 1);
+	return len+TLV_HEADER;
+
+
+}t 
 
 //Creation de Network State Request
 
 
-int Network_state_request(){
+int Network_state_request(char * network_req){
+    memset(network_req, 0, SIZE-MSG_HEADER);
 
+	uint8_t type = 0x5;
+
+ 	uint8_t len = 0x0;
+	memcpy(network_req, &type, 1);
+	memcpy(network_req+1, &len, 1);
+	return len+TLV_HEADER;
 
 
 }
 
 //Creation de Node Hash
 
+int Node_hash(char * node_hash, uint64_t node_id, uint16_t seqno, char * node_hash){
+    memset(node_hash, 0, SIZE-MSG_HEADER);
+
+	uint8_t type = 0x6;
+    //len = 26
+ 	uint8_t len = 0x1A;
+	memcpy(node_hash, &type, 1);
+	memcpy(node_hash+1, &len, 1);
+	memcpy(node_hash+2, &node_id, 8);
+	memcpy(node_hash+10, &seqno, 2);
+	memcpy(node_hash+12, &seqno, 16);
+	return len+TLV_HEADER;
+
+
+}
 
 //Creation de Node State Request
 
 
-//Creation de Node State 
+int Node_state_request(char * node_state_req, uint64_t node_id ){
+
+    memset(node_state_req, 0, SIZE-MSG_HEADER);
+
+	uint8_t type = 0x7;
+    //len = 26
+ 	uint8_t len = 0x8;
+	memcpy(node_hash, &type, 1);
+	memcpy(node_hash+1, &len, 1);
+	memcpy(node_state_req+2, &node_id, 8);
+
+	return len+TLV_HEADER;
+
+}
+
+
+//Création de Node State
+
+int Node_state(char * nodestate, uint64_t node_id, uint16_t seqno, char * node_hash, char * data, int data_length) {
+	memset(nodestate, 0, BUF_SIZE-MSG_HEADER);
+
+	uint8_t type = 0x8;
+	//len = 28 sans data length
+ 	uint8_t len = 0x1C + data_length;
+	memcpy(nodestate, &type, 1);
+	memcpy(nodestate+1, &len, 1);
+	memcpy(nodestate+2, &node_id, 8);
+	memcpy(nodestate+10, &seqno, 2);
+	memcpy(nodestate+12, &node_hash, 16);
+	memcpy(data+28, data, data_length);
+	return len+TLV_HEADER;
+}
 
 
 //Creation de warning
 
-int Warning(char * warning, char * message, int length) {
+int Warning(char * warning, char * message, int message_length) {
 	memset(warning, 0, SIZE-MSG_HEADER);
 	uint8_t type = 0x9;
-	uint8_t len = length;
+	uint8_t len = message_length;
 	memcpy(warning, &type, 1);
 	memcpy(warning+1, &len, 1);
-	memcpy(warning+2, message, length);
+	memcpy(warning+2, message, message_length);
 	return len+TLV_ENTETE;
 }
 
