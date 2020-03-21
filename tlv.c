@@ -23,9 +23,47 @@
 
 #define SIZE 1024
 
+/*
+QUESTIONS
+- Un peu de mal avec les conversions ntohs et htons.
+Ce qu'elles représentent exactement ?
+Pourquoi n'en fait-on pas au moment de récupérer les types et longeurs des TLV par exemple ?
+- Ne faut-il pas générer une seule fois notre id de noeud 
+et le conserver une bonne fois pour toute ?
+- Est-il nécessaire d'écrire en hexadécimal dans les uint8_t etc ? 
+Ce n'est pas possible d'écire directement en décimal ? 
+*/
+
+/*
+REMARQUES GÉNÉRALE :
+- Attention à ne pas écrire à des adresses de pointeurs 
+dont on ignore la taille allouée en mémoire
+- Rappel : un datagramme peut contenir toute une série de TLV différents, 
+Les TLV ne "mesureront" jamais 1000 octets ! 
+(218 max je crois, taille des tlv les plus gros : Node State)
+- Globalement, il serait logique pour moi de renvoyer des pointeurs pour chaque fonction
+Et d'allouer la taille mémoire de ses pointeurs DANS la fonction. 
+*/
+
+/*
+PROPOSITIONS MODIFICATION : 
+- Sur toutes les fonctions de création de tlv : 
+ne pas passer la chaine de caractère en paramètre ! 
+Voir détails dans les commentaires des fonctions
+- Harmoniser les noms des paramètres
+(ex : dtg pour datagramme)
+*/
+
+/*
+PROPOSITIONS FONCTIONS À ÉCRIRE ?
+- 
+*/
 
 
 
+//Initialise le datagramme msg avec les valeurs de magic et version
+// NB : ne pourrait-on pas n'avoir aucun paramètre et renvoyer directement
+// nn pointeur vers un nouveau datagramme donc magic et version seraient initialisés ?
 int main_datagram(char * msg){
     memset(msg, 0, SIZE);
 	uint8_t magic = 0x5F;
@@ -33,8 +71,6 @@ int main_datagram(char * msg){
 	memcpy(msg, &magic, 1);
 	memcpy(msg+1, &ver, 1);
 	return MSG_HEADER;
-
-
 }
 
 
@@ -43,19 +79,22 @@ int main_datagram(char * msg){
 
 //A modifier ???
 
-
+// Prend un datagramme et retourne la longeur de son body
+// NB : pas besoin d'utiliser deux variables différentes ?
 uint16_t get_body_length(char * message)
 {
     uint16_t length;
     memcpy(&length, message + 2, 2);
     //The ntohs() function converts a 16-bit value from network-byte order to host-byte order. 
     //If a machine's byte order is the same as the network order, this routine is defined as a null macro. 
-
     uint16_t len = ntohs(length);
     return len;
 }
 
-
+// Prend un datagramme, un chaine de caractères body et une longeur 
+// Écrit len octets de body à l'adresse message + 4
+// NB : vérifier si len < 1024 - 4 ? (SIZE - 4) ou ignorer la possibilité ? 
+// Sommes-nous sûres des conversions ?
 int set_msg_body(char *message, char *body, uint16_t len)
 {
     
@@ -76,25 +115,39 @@ int set_msg_body(char *message, char *body, uint16_t len)
 
 //TLV
 
+// Prend un tlv et retourne son type
+// NB : conversion ? 
 uint8_t getTLV_TYPE(char * tlv) {
 	uint8_t type;
 	memcpy(&type, tlv, 1);
 	return type;
 }
 
+// Prend un tlv et retourne sa longueur
+// NB : conversion ?
 uint8_t getTLV_LENGTH(char * tlv) {
 	uint8_t len;
 	memcpy(&len, tlv+1, 1);
 	return len;
 }
 
+// Prend un tlv et retourne l'adresse de son body
 char * getTLV_BODY(char * tlv) {
 	return tlv+TLV_HEADER;
 }
 
-//Cr?tion Pad1
+//Création Pad1
 
+// Prend une chaine de caractère, 
+// NB : Même chose que pour main_datagram et toutes les fonctions suivantes
+// Est-il bien nécessaire d'avoir la chaine de caractère en paramètre ? 
+// Ne serait-il pas plus pratique de la créer dans la fonction directement, avec malloc ?
+// (Surtout que, attention dangereux : tu mets à 0 1000 octets à partir de pad
+// sans avoir aucune idée de la taille allouée à pad.)
+// Et la fonction retournerait l'adresse de pad ?
 
+// D'ailleurs, pour le tlv PAD1, sa longueur est 1 octet !!
+// Rappel : un datagramme peut contenir plusieurs TLV
 int Pad1(char * pad) {
 	memset(pad, 0, SIZE-MSG_HEADER);
 	uint8_t type = 0x0;
@@ -102,7 +155,9 @@ int Pad1(char * pad) {
 	return 1;
 }
 
-//Cr?tion de PadN
+
+//Création de PadN
+// NB Mêmes commentaires que précédemment
 int PadN(char * pad, uint8_t len) {
 	memset(pad, 0, SIZE-MSG_HEADER);
 	uint8_t type = 0x1;
@@ -212,8 +267,11 @@ int Node_state_request(char * node_state_req, uint64_t node_id ){
 }
 
 
-//Cr?tion de Node State
-
+//Creation de Node State
+// NB : pourquoi pas uint16_t pour node_hash ? 
+// Ça fonctionne une addition hexadecimale + size_t (unsigned int) dans un uint8_t...?
+// PS : 1C = 28 en hexa, mais le champ length d'un TLV ne compte pas son en-tête
+// 8 (Node ID) + 2 (Seq n°) + 16 (Node hash) = 26
 int Node_state(char * nodestate, uint64_t node_id, uint16_t seqno, char * node_hash, char * data, size_t data_length) {
 	memset(nodestate, 0, SIZE-MSG_HEADER);
 
@@ -264,7 +322,8 @@ int main (void) {
     uint16_t numero_sequence = 0x0;
     char *data= "HELLO!!!!";
 
-    char id[9], sequence[1];
+    char id[9], sequence[1]; // NB : Séquence fait deux octets ... ?
+    // NB : pourquoi ces conversions, et pas une écriture directe avec memcpy comme avant ?
     sprintf( id, "%d", (int)node_id);
     sprintf( sequence, "%d", numero_sequence);
 
@@ -283,7 +342,7 @@ int main (void) {
 	unsigned char *res = SHA256(new_triplet, strlen(new_triplet), 0);
     
 
-    //On tronque le résultat pour avoir 16 octet (pas sure que ca soit correcte)
+    //On tronque le résultat pour avoir 16 octets (pas sure que ca soit correcte)
     char node_hash[100];
     memcpy(node_hash, &res, 16);
 
@@ -308,7 +367,7 @@ int main (void) {
     int node_state_len = Node_state(nodestate,node_id, numero_sequence, node_hash, data,strlen(data));
     
 
-    //taille du datagrame finale qu'on va envoyé
+    //taille du datagrame finale qu'on va envoyer
     int datagram_length = set_msg_body(datagram, nodestate, node_state_len);
 
 
