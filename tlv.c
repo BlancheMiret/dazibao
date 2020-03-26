@@ -27,11 +27,21 @@
 QUESTIONS
 - Un peu de mal avec les conversions ntohs et htons.
 Ce qu'elles représentent exactement ?
+Asmaa: 
+Je n'ai pas TOUT compris en détails et c'est un peu difficile de l'expliquer en quelques phrases, 
+il vaut mieux regarder les explications sur internet 
+
 Pourquoi n'en fait-on pas au moment de récupérer les types et longeurs des TLV par exemple ?
+Asmaa: j'ai pas testé ces fonctions donc pas encore sûre si on en a besoin ou pas 
+
 - Ne faut-il pas générer une seule fois notre id de noeud 
 et le conserver une bonne fois pour toute ?
+
 - Est-il nécessaire d'écrire en hexadécimal dans les uint8_t etc ? 
 Ce n'est pas possible d'écire directement en décimal ? 
+Asmaa: je ne suis pas sûre...mais tous les exemples que j'ai vu utilisent hex
+
+
 */
 
 /*
@@ -113,7 +123,7 @@ int set_msg_body(char *message, char *body, uint16_t len)
 
 
 
-//TLV
+//TLV  (revoir ces fonctions et l'utilisation de ntohs)
 
 // Prend un tlv et retourne son type
 // NB : conversion ? 
