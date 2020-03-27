@@ -6,8 +6,15 @@ EXEC = tlv
 
 all : $(EXEC)
 
-tlv : tlv.c
-	$(CC) $(CFLAGS) tlv.c -o tlv_exe $(CRYPTO)
+tlv : tlv.o dazibao.o
+	$(CC) -o tlv tlv.o dazibao.o $(CRYPTO)
+
+tlv.o : tlv.c
+	$(CC) $(CFLAGS) -o tlv.o -c tlv.c
+
+dazibao.o : dazibao.c tlv.h
+	$(CC) $(CFLAGS) -o dazibao.o -c dazibao.c 
+
 
 cleanall:
 	rm -rf *~ $(ALL)
