@@ -333,7 +333,7 @@ int main (void) {
     uint16_t numero_sequence = 0x24;
     char *data= "HELLO!!!!";
     uint16_t new_sequence = htons(numero_sequence);
-    char id[9], sequence[1]; // NB : Séquence fait deux octets ... ?
+    char id[9], sequence[1]; // NB : Séquence fait deux octets ... ? finalement je ne les ai pas utilisé, c'est à supprimer
     // NB : pourquoi ces conversions, et pas une écriture directe avec memcpy comme avant ?
     sprintf( id, "%d", (int)node_id);
     sprintf( sequence, "%d", numero_sequence);
