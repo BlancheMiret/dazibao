@@ -1,22 +1,23 @@
-#include <stdio.h>
+//#include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <unistd.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/socket.h>
+//#include <stdlib.h>
+//#include <stdbool.h>
+//#include <unistd.h>
+//#include <errno.h>
+//#include <sys/types.h>
+//#include <sys/socket.h>
 #include <netdb.h>
-#include <sys/time.h>
-#include <time.h>
-#include <stdint.h>
-#include <arpa/inet.h>
-#include <inttypes.h>
-#include <fcntl.h>
-#include <sys/select.h>
-#include <net/if.h>
-#include <locale.h>
-#include <openssl/sha.h>
+//#include <sys/time.h>
+//#include <time.h>
+//#include <stdint.h>
+//#include <arpa/inet.h>
+//#include <inttypes.h>
+//#include <fcntl.h>
+//#include <sys/select.h>
+//#include <net/if.h>
+//#include <locale.h>
+//#include <openssl/sha.h>
+//#include "tlv.h"
 
 #define MSG_HEADER 4
 #define TLV_HEADER 2
@@ -257,8 +258,6 @@ int Node_state_request(char * node_state_req, uint64_t node_id ){
 //Creation de Node State
 // NB : pourquoi pas uint16_t pour node_hash ? 
 // Ça fonctionne une addition hexadecimale + size_t (unsigned int) dans un uint8_t...?
-// PS : 1C = 28 en hexa, mais le champ length d'un TLV ne compte pas son en-tête
-// 8 (Node ID) + 2 (Seq n°) + 16 (Node hash) = 26
 int Node_state(char * nodestate, uint64_t node_id, uint16_t seqno, char * node_hash,  char * data, size_t data_length) {
 	memset(nodestate, 0, SIZE-MSG_HEADER);
 	uint8_t type = 0x8;
@@ -288,9 +287,9 @@ int Warning(char * warning, char * message, int message_length) {
 
 
 
-/****************************************************************************/
+// ****************************************************************************
 
-
+/*
 int main (void) {
 
    //ID DE NOTRE NOEUD
@@ -312,14 +311,14 @@ int main (void) {
 
     
 
-    /* OK POUR SUPPRESSION ?
+    //OK POUR SUPPRESSION ?
 
-    char id[9], sequence[1]; // NB : Séquence fait deux octets ... ? // finalement je ne les ai pas utilisé, c'est à supprimer
+    //char id[9], sequence[1]; // NB : Séquence fait deux octets ... ? // finalement je ne les ai pas utilisé, c'est à supprimer
     // NB : pourquoi ces conversions, et pas une écriture directe avec memcpy comme avant ?
     
-    sprintf( id, "%d", (int)node_id);
-    sprintf( sequence, "%d", numero_sequence);
-    */
+    //sprintf( id, "%d", (int)node_id);
+    //sprintf( sequence, "%d", numero_sequence);
+    //
 
     //concaténation de node_id & numero de sequence & data pour le hash
     char triplet[100]; 
@@ -352,7 +351,7 @@ int main (void) {
     int datagram_length = set_msg_body(datagram, nodestate, node_state_len);
 
 
-/****** paramètres réseaux ********/
+// ****** paramètres réseaux *******
 
     char *dest_host = "jch.irif.fr";
     char *dest_port = "1212";
@@ -402,12 +401,12 @@ int main (void) {
         exit(2);
     }
 
-    /* Parametrage pour que la scket soit en mode non bloquant */
-    /* cree une erreur :
-    recvmsg: Resource temporarily unavailable
-    Message recu de :
-    Segmentation fault (core dumped)
-    */
+    //Parametrage pour que la scket soit en mode non bloquant 
+    // cree une erreur :
+    //recvmsg: Resource temporarily unavailable
+    //Message recu de :
+    //Segmentation fault (core dumped)
+    
     // status = fcntl(sockfd, F_GETFL);
     // if(status < 0) {}
     // status = fcntl(sockfd, F_SETFL, status | O_NONBLOCK);
@@ -423,3 +422,4 @@ int main (void) {
 
 	return 0;
 }
+*/
