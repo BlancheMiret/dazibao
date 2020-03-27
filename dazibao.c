@@ -4,8 +4,8 @@
 //#include <stdbool.h>
 //#include <unistd.h>
 //#include <errno.h>
-//#include <sys/types.h>
-//include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <netdb.h>
 //#include <sys/time.h>
 //#include <time.h>
@@ -22,6 +22,9 @@
 
 #define SIZE 1024
 
+char *data= "If you can talk with crowds and keep your virtue.";
+uint16_t new_sequence = htons(0x32); //50
+
 int main (void) {
 
    //ID DE NOTRE NOEUD
@@ -33,15 +36,6 @@ int main (void) {
     printf("node_id %llu\n" PRIu64, node_id) ;
     printf("\n");
     printf("node_id %llu\n", node_id);
-
-    // NUMÉRO DE SÉQUENCE DE LA DATA : en format gros-boutiste (cf page2)
-    uint16_t numero_sequence = 0x2F; //47
-    uint16_t new_sequence = htons(numero_sequence);
-
-    // DATA DE NOTRE NOEUD
-    char *data= "If you can talk with crowds and keep your virtue.";
-
-    
 
     /* OK POUR SUPPRESSION ?
 
@@ -55,7 +49,7 @@ int main (void) {
     //concaténation de node_id & numero de sequence & data pour le hash
     char triplet[100]; 
     memcpy(triplet, &node_id, 8);
-    memcpy(triplet+8, &numero_sequence, 2);
+    memcpy(triplet+8, &new_sequence, 2); //selon le sujet page 2, si doit bien être en big-endian dans le hash
     memcpy(triplet+10, &data, strlen(data)+1);
    
 
@@ -98,8 +92,7 @@ int main (void) {
     struct addrinfo *dest_info;
     int status;
 
-    if ((status = getaddrinfo(dest_host, dest_port, &hints, &dest_info)) != 0)
-    {
+    if ((status = getaddrinfo(dest_host, dest_port, &hints, &dest_info)) != 0) {
         fprintf(stderr, "getaddrinfo() error: %s\n", gai_strerror(status));
         exit(2);
     }
@@ -107,8 +100,7 @@ int main (void) {
     // Initialisation de la socket
     struct addrinfo *ap;
     int sockfd;
-    for (ap = dest_info; ap != NULL; ap = ap->ai_next)
-    {
+    for (ap = dest_info; ap != NULL; ap = ap->ai_next) {
         sockfd = socket(ap->ai_family, ap->ai_socktype, ap->ai_protocol);
         if (sockfd != -1)
             break;
