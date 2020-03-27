@@ -1,23 +1,23 @@
-//#include <stdio.h>
+#include <stdio.h>
 #include <string.h>
-//#include <stdlib.h>
-//#include <stdbool.h>
-//#include <unistd.h>
-//#include <errno.h>
-//#include <sys/types.h>
-//#include <sys/socket.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <netdb.h>
-//#include <sys/time.h>
-//#include <time.h>
-//#include <stdint.h>
-//#include <arpa/inet.h>
-//#include <inttypes.h>
-//#include <fcntl.h>
-//#include <sys/select.h>
-//#include <net/if.h>
-//#include <locale.h>
-//#include <openssl/sha.h>
-//#include "tlv.h"
+#include <sys/time.h>
+#include <time.h>
+#include <stdint.h>
+#include <arpa/inet.h>
+#include <inttypes.h>
+#include <fcntl.h>
+#include <sys/select.h>
+#include <net/if.h>
+#include <locale.h>
+#include <openssl/sha.h>
+#include "tlv.h"
 
 #define MSG_HEADER 4
 #define TLV_HEADER 2
