@@ -24,27 +24,6 @@
 #define SIZE 1024
 
 /*
-QUESTIONS
-- Un peu de mal avec les conversions ntohs et htons.
-Ce qu'elles représentent exactement ?
-Asmaa: 
-Je n'ai pas TOUT compris en détails et c'est un peu difficile de l'expliquer en quelques phrases, 
-il vaut mieux regarder les explications sur internet 
-
-Pourquoi n'en fait-on pas au moment de récupérer les types et longeurs des TLV par exemple ?
-Asmaa: j'ai pas testé ces fonctions donc pas encore sûre si on en a besoin ou pas 
-
-- Ne faut-il pas générer une seule fois notre id de noeud 
-et le conserver une bonne fois pour toute ?
-
-- Est-il nécessaire d'écrire en hexadécimal dans les uint8_t etc ? 
-Ce n'est pas possible d'écire directement en décimal ? 
-Asmaa: je ne suis pas sûre...mais tous les exemples que j'ai vu utilisent hex
-
-
-*/
-
-/*
 REMARQUES GÉNÉRALE :
 - Attention à ne pas écrire à des adresses de pointeurs 
 dont on ignore la taille allouée en mémoire
@@ -95,8 +74,6 @@ uint16_t get_body_length(char * message)
 {
     uint16_t length;
     memcpy(&length, message + 2, 2);
-    //The ntohs() function converts a 16-bit value from network-byte order to host-byte order. 
-    //If a machine's byte order is the same as the network order, this routine is defined as a null macro. 
     uint16_t len = ntohs(length);
     return len;
 }
@@ -284,17 +261,15 @@ int Node_state_request(char * node_state_req, uint64_t node_id ){
 // 8 (Node ID) + 2 (Seq n°) + 16 (Node hash) = 26
 int Node_state(char * nodestate, uint64_t node_id, uint16_t seqno, char * node_hash,  char * data, size_t data_length) {
 	memset(nodestate, 0, SIZE-MSG_HEADER);
-
 	uint8_t type = 0x8;
-	
- 	uint8_t len = 0x1C + 0xA;
-
+ 	uint8_t len = 0x1A + data_length;
+ 	//uint64_t new_node_id = htonll(node_id);
 	memcpy(nodestate, &type, 1);
 	memcpy(nodestate+1, &len, 1);
 	memcpy(nodestate+2, &node_id, 8);
 	memcpy(nodestate+10, &seqno, 2);
 	memcpy(nodestate+12, node_hash, 16);
-	memcpy(nodestate+28, "bonjour !!", strlen("bonjour !!"));
+	memcpy(nodestate+28, data, strlen(data));
 	return len+TLV_HEADER;
 }
 
@@ -318,30 +293,36 @@ int Warning(char * warning, char * message, int message_length) {
 
 int main (void) {
 
-   //Générer un node id
-
+   //ID DE NOTRE NOEUD
 	uint64_t node_id =
 	(((uint64_t) rand() <<  0) & 0x000000000000FFFFull) | 
 	(((uint64_t) rand() << 16) & 0x00000000FFFF0000ull) | 
 	(((uint64_t) rand() << 32) & 0x0000FFFF00000000ull) |
 	(((uint64_t) rand() << 48) & 0xFFFF000000000000ull);
+    printf("node_id %llu\n" PRIu64, node_id) ;
+    printf("\n");
+    printf("node_id %llu\n", node_id);
 
-
-    //printf("node_id %" PRIu64, node_id) ;
-
-   
-    uint16_t numero_sequence = 0x24;
-    char *data= "HELLO!!!!";
+    // NUMÉRO DE SÉQUENCE DE LA DATA : en format gros-boutiste (cf page2)
+    uint16_t numero_sequence = 0x2E; //46
     uint16_t new_sequence = htons(numero_sequence);
-    char id[9], sequence[1]; // NB : Séquence fait deux octets ... ? finalement je ne les ai pas utilisé, c'est à supprimer
+
+    // DATA DE NOTRE NOEUD
+    char *data= "If you can talk with crowds and keep your virtue.";
+
+    
+
+    /* OK POUR SUPPRESSION ?
+
+    char id[9], sequence[1]; // NB : Séquence fait deux octets ... ? // finalement je ne les ai pas utilisé, c'est à supprimer
     // NB : pourquoi ces conversions, et pas une écriture directe avec memcpy comme avant ?
+    
     sprintf( id, "%d", (int)node_id);
     sprintf( sequence, "%d", numero_sequence);
-
-    char triplet[100]; 
-
+    */
 
     //concaténation de node_id & numero de sequence & data pour le hash
+    char triplet[100]; 
     memcpy(triplet, &node_id, 8);
     memcpy(triplet+8, &numero_sequence, 2);
     memcpy(triplet+10, &data, strlen(data)+1);
@@ -349,36 +330,25 @@ int main (void) {
 
 
     //On convertit pour pouvoir l'utiliser dans la méthode SHA256
-    const char * new_triplet = (const char *)triplet;
-	unsigned char *res = SHA256(new_triplet, strlen(new_triplet), 0);
-    
-
-    //On tronque le résultat pour avoir 16 octets (pas sure que ca soit correcte)
+    //const char * new_triplet = (const char *)triplet;
+    //unsigned char *res = SHA256(new_triplet, strlen(new_triplet), 0);
+	unsigned char *res = SHA256((const unsigned char*)triplet, strlen(triplet), 0);
+    //On tronque le résultat pour avoir 16 octets (pas sure que ca soit correcte) (Si ça me paraît bien)
     char node_hash[100];
     memcpy(node_hash, &res, 16);
-
-
-    
-	int i;
 	
 
     //Creation de message global à envoyer
-
-
-     char *datagram = malloc(SIZE*sizeof(char));
-
-  
-
+    char *datagram = malloc(SIZE*sizeof(char));
     main_datagram(datagram);
 
-     // Création de message Node state 
+    // Création de message Node state 
     char nodestate[SIZE];
  
     //taille de node state
     int node_state_len = Node_state(nodestate,node_id, new_sequence, node_hash, data,strlen(data));
     
-
-    //taille du datagrame finale qu'on va envoyer
+    //taille du datagrame final qu'on va envoyer
     int datagram_length = set_msg_body(datagram, nodestate, node_state_len);
 
 
@@ -450,8 +420,6 @@ int main (void) {
         perror("sendto() error");
         exit(2);
     }
-
-
 
 	return 0;
 }
