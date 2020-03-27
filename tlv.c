@@ -282,18 +282,19 @@ int Node_state_request(char * node_state_req, uint64_t node_id ){
 // Ça fonctionne une addition hexadecimale + size_t (unsigned int) dans un uint8_t...?
 // PS : 1C = 28 en hexa, mais le champ length d'un TLV ne compte pas son en-tête
 // 8 (Node ID) + 2 (Seq n°) + 16 (Node hash) = 26
-int Node_state(char * nodestate, uint64_t node_id, uint16_t seqno, char * node_hash, char * data, size_t data_length) {
+int Node_state(char * nodestate, uint64_t node_id, uint16_t seqno, char * node_hash,  char * data, size_t data_length) {
 	memset(nodestate, 0, SIZE-MSG_HEADER);
 
 	uint8_t type = 0x8;
-	//len = 28 sans data length
- 	uint8_t len = 0x1C + data_length;
+	
+ 	uint8_t len = 0x1C + 0xA;
+
 	memcpy(nodestate, &type, 1);
 	memcpy(nodestate+1, &len, 1);
 	memcpy(nodestate+2, &node_id, 8);
 	memcpy(nodestate+10, &seqno, 2);
-	memcpy(nodestate+12, &node_hash, 16);
-	memcpy(nodestate+28, &data, data_length);
+	memcpy(nodestate+12, node_hash, 16);
+	memcpy(nodestate+28, "bonjour !!", strlen("bonjour !!"));
 	return len+TLV_HEADER;
 }
 
