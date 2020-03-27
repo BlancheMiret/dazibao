@@ -22,56 +22,61 @@
 
 #define SIZE 1024
 
-char *data= "If you can talk with crowds and keep your virtue.";
-uint16_t new_sequence = htons(0x32); //50
+char *data;
+uint16_t new_sequence;
+uint64_t node_id;
 
 int main (void) {
 
-   //ID DE NOTRE NOEUD
-	uint64_t node_id =
+	// DATA ET NUMÉRO DE SÉQUENCE 
+	data = "If you can walk with kings nor lose the common touch";
+	new_sequence = htons(0x34); //52
+
+
+    // ID DE NOTRE NOEUD -- 
+	// PS: Par rapport à l'affichage sur l'interface en ligne :
+	// Il semble que les envois de ma machine ou de la tienne ne donnent pas le même numéro ! Le mien est a741f13ad9ac2a0c, le tien 6745c62369987348
+	// Sur mon terminal, pour la vraie valeur du node_id générée, j'ai 876703126473752999, toi aussi ? 
+	node_id =
 	(((uint64_t) rand() <<  0) & 0x000000000000FFFFull) | 
 	(((uint64_t) rand() << 16) & 0x00000000FFFF0000ull) | 
 	(((uint64_t) rand() << 32) & 0x0000FFFF00000000ull) |
 	(((uint64_t) rand() << 48) & 0xFFFF000000000000ull);
-    printf("node_id %llu\n" PRIu64, node_id) ;
+    printf("node_id %" PRIu64, node_id) ;
     printf("\n");
-    printf("node_id %llu\n", node_id);
+
 
     /* OK POUR SUPPRESSION ?
-
     char id[9], sequence[1]; // NB : Séquence fait deux octets ... ? // finalement je ne les ai pas utilisé, c'est à supprimer
     // NB : pourquoi ces conversions, et pas une écriture directe avec memcpy comme avant ?
-    
     sprintf( id, "%d", (int)node_id);
     sprintf( sequence, "%d", numero_sequence);
     */
 
-    //concaténation de node_id & numero de sequence & data pour le hash
+
+    //concaténation de node_id & numero de sequence & data pour le hash + 
     char triplet[100]; 
     memcpy(triplet, &node_id, 8);
     memcpy(triplet+8, &new_sequence, 2); //selon le sujet page 2, si doit bien être en big-endian dans le hash
     memcpy(triplet+10, &data, strlen(data)+1);
-   
-
-
     //On convertit pour pouvoir l'utiliser dans la méthode SHA256
-    //const char * new_triplet = (const char *)triplet;
-    //unsigned char *res = SHA256(new_triplet, strlen(new_triplet), 0);
 	unsigned char *res = SHA256((const unsigned char*)triplet, strlen(triplet), 0);
     //On tronque le résultat pour avoir 16 octets (pas sure que ca soit correcte) (Si ça me paraît bien)
-    char node_hash[100];
+    char node_hash[16];
     memcpy(node_hash, &res, 16);
 	
 
+	// Blanche : je refais mes remarques, mieux vaut faire les mallocs à l'intérieur des fonctions main_datagrame et Node_state et de renvoyer un pointeur !
     //Creation de message global à envoyer
     char *datagram = malloc(SIZE*sizeof(char));
     main_datagram(datagram);
-
     // Création de message Node state 
     char nodestate[SIZE];
- 
+
+
     //taille de node state
     int node_state_len = Node_state(nodestate,node_id, new_sequence, node_hash, data,strlen(data));
+
     
     //taille du datagrame final qu'on va envoyer
     int datagram_length = set_msg_body(datagram, nodestate, node_state_len);
@@ -106,16 +111,17 @@ int main (void) {
             break;
     }
 
-    if (ap == NULL)
-    {
+    if (ap == NULL) {
         fprintf(stderr, "socket() error\n");
         freeaddrinfo(dest_info);
         exit(2);
     }
 
-    //Param?rage de la socket
+
+    //Paramétrage de la socket
     int one = 1;
     int size_one = sizeof one;
+    // Évite le temps mort
     if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &one, size_one) < 0) {
         perror("setsockopt SO_TIMESTAMP");
         exit(2);
@@ -124,6 +130,16 @@ int main (void) {
         perror("setsockopt SO_TIMESTAMP");
         exit(2);
     }
+
+
+    /*
+    // Pour mettre la socket en polymorphe  --> erreur à l'exécution
+    one = 0;
+    if(setsockopt(sockfd, IPPROTO_IPV6, IPV6_V6ONLY, &one, sizeof(one)) < 0) {
+    	perror("setsockopt IPV6_V6ONLY");
+    	exit(2);
+    }
+    */
 
     /* Parametrage pour que la scket soit en mode non bloquant */
     /* cree une erreur :

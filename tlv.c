@@ -29,19 +29,10 @@ REMARQUES GÉNÉRALE :
 - Attention à ne pas écrire à des adresses de pointeurs 
 dont on ignore la taille allouée en mémoire
 - Rappel : un datagramme peut contenir toute une série de TLV différents, 
-Les TLV ne "mesureront" jamais 1000 octets ! 
+Les TLV ne "mesureront" jamais 1000 octets !!! 
 (218 max je crois, taille des tlv les plus gros : Node State)
 - Globalement, il serait logique pour moi de renvoyer des pointeurs pour chaque fonction
 Et d'allouer la taille mémoire de ses pointeurs DANS la fonction. 
-*/
-
-/*
-PROPOSITIONS MODIFICATION : 
-- Sur toutes les fonctions de création de tlv : 
-ne pas passer la chaine de caractère en paramètre ! 
-Voir détails dans les commentaires des fonctions
-- Harmoniser les noms des paramètres
-(ex : dtg pour datagramme)
 */
 
 /*
@@ -54,7 +45,7 @@ PROPOSITIONS FONCTIONS À ÉCRIRE ?
 //Initialise le datagramme msg avec les valeurs de magic et version
 // NB : ne pourrait-on pas n'avoir aucun paramètre et renvoyer directement
 // nn pointeur vers un nouveau datagramme donc magic et version seraient initialisés ?
-int main_datagram(char * msg){
+int main_datagram(char * msg) {
     memset(msg, 0, SIZE);
 	uint8_t magic = 0x5F;
 	uint8_t ver = 0x1;
@@ -71,34 +62,27 @@ int main_datagram(char * msg){
 
 // Prend un datagramme et retourne la longeur de son body
 // NB : pas besoin d'utiliser deux variables différentes ?
-uint16_t get_body_length(char * message)
-{
+uint16_t get_body_length(char * message) {
     uint16_t length;
     memcpy(&length, message + 2, 2);
     uint16_t len = ntohs(length);
     return len;
 }
 
+
 // Prend un datagramme, un chaine de caractères body et une longeur 
 // Écrit len octets de body à l'adresse message + 4
 // NB : vérifier si len < 1024 - 4 ? (SIZE - 4) ou ignorer la possibilité ? 
 // Sommes-nous sûres des conversions ?
-int set_msg_body(char *message, char *body, uint16_t len)
-{
-    
+int set_msg_body(char *message, char *body, uint16_t len) {
     //uint16_t convert_len = ntohs(get_body_length(message));
-
     memcpy(message + 4 , body, len);
-
     //convert_len = len;
-
     //from host-byte order to network-byte order 
     uint16_t convert_h = htons(len);
     memcpy(message + 2, &convert_h, 2);
-
     return MSG_HEADER + len;
 }
-
 
 
 //TLV  (revoir ces fonctions et l'utilisation de ntohs)
@@ -111,6 +95,7 @@ uint8_t getTLV_TYPE(char * tlv) {
 	return type;
 }
 
+
 // Prend un tlv et retourne sa longueur
 // NB : conversion ?
 uint8_t getTLV_LENGTH(char * tlv) {
@@ -119,10 +104,12 @@ uint8_t getTLV_LENGTH(char * tlv) {
 	return len;
 }
 
+
 // Prend un tlv et retourne l'adresse de son body
 char * getTLV_BODY(char * tlv) {
 	return tlv+TLV_HEADER;
 }
+
 
 //Création Pad1
 
@@ -156,8 +143,6 @@ int PadN(char * pad, uint8_t len) {
 
 
 //Creation de Neighbour request
-
-
 int Neighbour_request(char * neighbourReq) {
 	memset(neighbourReq, 0, SIZE-MSG_HEADER);
 	uint8_t type = 0x2;
@@ -168,10 +153,7 @@ int Neighbour_request(char * neighbourReq) {
 }
 
 
-
 //Creation de Neighbour 
-
-
 int Neighbour(char * neigbour, struct in6_addr IP, in_port_t port) {
 	memset(neigbour, 0, SIZE-MSG_HEADER);
 	uint8_t type = 0x3;
@@ -185,44 +167,31 @@ int Neighbour(char * neigbour, struct in6_addr IP, in_port_t port) {
 }
 
 
-
 //Creation de Network Hash  
-
-
 int Network_hash(char * network_hash, char * hash){
     memset(network_hash, 0, SIZE-MSG_HEADER);
-
 	uint8_t type = 0x4;
-
  	uint8_t len = 0x0;
 	memcpy(network_hash, &type, 1);
 	memcpy(network_hash+1, &len, 1);
 	return len+TLV_HEADER;
-
-
 }
 
+
 //Creation de Network State Request
-
-
 int Network_state_request(char * network_req){
     memset(network_req, 0, SIZE-MSG_HEADER);
-
 	uint8_t type = 0x5;
-
  	uint8_t len = 0x0;
 	memcpy(network_req, &type, 1);
 	memcpy(network_req+1, &len, 1);
 	return len+TLV_HEADER;
-
-
 }
 
-//Creation de Node Hash
 
+//Creation de Node Hash
 int Node_hash(char * node_hash, uint64_t node_id, uint16_t seqno, char * hash){
     memset(node_hash, 0, SIZE-MSG_HEADER);
-
 	uint8_t type = 0x6;
     //len = 26
  	uint8_t len = 0x1A;
@@ -232,26 +201,19 @@ int Node_hash(char * node_hash, uint64_t node_id, uint16_t seqno, char * hash){
 	memcpy(node_hash+10, &seqno, 2);
 	memcpy(node_hash+12, &hash, 16);
 	return len+TLV_HEADER;
-
-
 }
 
+
 //Creation de Node State Request
-
-
 int Node_state_request(char * node_state_req, uint64_t node_id ){
-
     memset(node_state_req, 0, SIZE-MSG_HEADER);
-
 	uint8_t type = 0x7;
     //len = 26
  	uint8_t len = 0x8;
 	memcpy(node_state_req, &type, 1);
 	memcpy(node_state_req+1, &len, 1);
 	memcpy(node_state_req+2, &node_id, 8);
-
 	return len+TLV_HEADER;
-
 }
 
 
@@ -274,7 +236,6 @@ int Node_state(char * nodestate, uint64_t node_id, uint16_t seqno, char * node_h
 
 
 //Creation de warning
-
 int Warning(char * warning, char * message, int message_length) {
 	memset(warning, 0, SIZE-MSG_HEADER);
 	uint8_t type = 0x9;
@@ -286,6 +247,7 @@ int Warning(char * warning, char * message, int message_length) {
 }
 
 
+// TOUT CE QUI SUIT : OK POUR SUPPRESSION ?
 
 // ****************************************************************************
 
