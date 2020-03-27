@@ -330,9 +330,9 @@ int main (void) {
     //printf("node_id %" PRIu64, node_id) ;
 
    
-    uint16_t numero_sequence = 0x0;
+    uint16_t numero_sequence = 0x24;
     char *data= "HELLO!!!!";
-
+    uint16_t new_sequence = htons(numero_sequence);
     char id[9], sequence[1]; // NB : Séquence fait deux octets ... ?
     // NB : pourquoi ces conversions, et pas une écriture directe avec memcpy comme avant ?
     sprintf( id, "%d", (int)node_id);
@@ -375,7 +375,7 @@ int main (void) {
     char nodestate[SIZE];
  
     //taille de node state
-    int node_state_len = Node_state(nodestate,node_id, numero_sequence, node_hash, data,strlen(data));
+    int node_state_len = Node_state(nodestate,node_id, new_sequence, node_hash, data,strlen(data));
     
 
     //taille du datagrame finale qu'on va envoyer
