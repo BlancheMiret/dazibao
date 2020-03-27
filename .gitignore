@@ -2,3 +2,4 @@
 *_exe
 *.dSYM
 *.DS_Store
+*.o
