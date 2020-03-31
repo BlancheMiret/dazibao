@@ -6,25 +6,15 @@ A faire:
 -Développer plus la partie envoie/reception des paquets avec un timeout
 -Créer une liste chainée pour les voisins? à voir...
 
-Blanche
+Blanche :
 
 Pour le samedi 4 avril
 Asmaa : test hashmap de GLIB
 Blanche : pseudo code d'architecture / diagramme du projet
 
-Propositions générales :
-- Tenir un journal de l'évolution du projet ; grossièrement un historique des commits mais en détaillé
-- Tenir un journal des choix d'implémentations, difficultés, changement de direction
-- Faire des choix ensemble !! Et discuter de qui fait quoi.
-
-
-JOURNAL DE L'ÉVOLUTION DU PROJET
--
--
--
 
 JOURNAL DES CHOIX ET DIFFICULTÉS D'IMPLÉMENTATIONS
--
--
--
+- Structure table des voisins : liste chainée ? Hashmap ? Avantage hashmap : manipulation des données, accès direct aux informations des voisins. 
+- TLV : créer des structures ?
+- Pour la gestion des receptions / envoi aux pairs : select (cf mail du 25 mars "Quelques conseils à propos du projet)
 
