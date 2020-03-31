@@ -8,6 +8,10 @@ A faire:
 
 Blanche
 
+Pour le samedi 4 avril
+Asmaa : test hashmap de GLIB
+Blanche : pseudo code d'architecture / diagramme du projet
+
 Propositions générales :
 - Tenir un journal de l'évolution du projet ; grossièrement un historique des commits mais en détaillé
 - Tenir un journal des choix d'implémentations, difficultés, changement de direction
