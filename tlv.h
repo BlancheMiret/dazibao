@@ -1,4 +1,4 @@
-int main_datagram(char * msg);
+void* main_datagram();
 uint16_t get_body_length(char * message);
 int set_msg_body(char *message, char *body, uint16_t len);
 uint8_t getTLV_TYPE(char * tlv);

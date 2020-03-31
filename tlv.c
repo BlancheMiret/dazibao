@@ -45,15 +45,15 @@ PROPOSITIONS FONCTIONS À ÉCRIRE ?
 //Initialise le datagramme msg avec les valeurs de magic et version
 // NB : ne pourrait-on pas n'avoir aucun paramètre et renvoyer directement
 // nn pointeur vers un nouveau datagramme donc magic et version seraient initialisés ?
-int main_datagram(char * msg) {
-    memset(msg, 0, SIZE);
-	uint8_t magic = 0x5F;
-	uint8_t ver = 0x1;
-	memcpy(msg, &magic, 1);
-	memcpy(msg+1, &ver, 1);
-	return MSG_HEADER;
+void* main_datagram() {
+    char *dtg = malloc(SIZE * sizeof(char));
+    memset(dtg, 0, SIZE);
+    uint8_t magic = 0x5F;
+    uint8_t ver = 0x1;
+    memcpy(dtg, &magic, 1);
+    memcpy(dtg+1, &ver, 1);
+    return dtg;
 }
-
 
 /****** longueur du message principal *******/
 

@@ -30,7 +30,7 @@ int main (void) {
 
 	// DATA ET NUMÉRO DE SÉQUENCE 
 	data = "If you can walk with kings nor lose the common touch";
-	new_sequence = htons(0x34); //52
+	new_sequence = htons(0x39); //57
 
 
     // ID DE NOTRE NOEUD -- 
@@ -68,12 +68,10 @@ int main (void) {
 
 	// Blanche : je refais mes remarques, mieux vaut faire les mallocs à l'intérieur des fonctions main_datagrame et Node_state et de renvoyer un pointeur !
     //Creation de message global à envoyer
-    char *datagram = malloc(SIZE*sizeof(char));
-    main_datagram(datagram);
+    char *datagram = main_datagram();
+
     // Création de message Node state 
     char nodestate[SIZE];
-
-
     //taille de node state
     int node_state_len = Node_state(nodestate,node_id, new_sequence, node_hash, data,strlen(data));
 
