@@ -12,6 +12,8 @@ Pour le samedi 4 avril
 Asmaa : test hashmap de GLIB
 Blanche : pseudo code d'architecture / diagramme du projet
 
+- tester affichage numéro node id avec chaine de char comme Dao et Liece ?
+
 
 JOURNAL DES CHOIX ET DIFFICULTÉS D'IMPLÉMENTATIONS
 - Structure table des voisins : liste chainée ? Hashmap ? Avantage hashmap : manipulation des données, accès direct aux informations des voisins. 
