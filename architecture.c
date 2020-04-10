@@ -17,7 +17,7 @@ void unpack_dtg(char *datagramme); // découpe le datagramme en tlv (liste chain
 
 // structure qui représente un voisin dans la table des voisins (cf sujet p7)
 
-(donc permanant = 1 c'est true et 0 false ?)
+//donc permanant = 1 c'est true et 0 false ?
 struct neighbour {
 	int 				permanent;
 	struct timeval		last_reception;
