@@ -19,3 +19,25 @@ JOURNAL DES CHOIX ET DIFFICULTÉS D'IMPLÉMENTATIONS
 - TLV : créer des structures ?
 - Pour la gestion des receptions / envoi aux pairs : select (cf mail du 25 mars "Quelques conseils à propos du projet)
 
+
+
+Update 12/04/2020:
+
+Asmaa:
+
+Liens utiles :
+
+http://www.kaushikbaruah.com/posts/data-structure-in-c-hashmap/
+https://www.tutorialspoint.com/data_structures_algorithms/hash_table_program_in_c.htm
+
+
+Si on utilise la hashmap :
+clé = adresses de socket mais représenté comment ?
+valeur = la structure neighbor 
+
+(pas sûre donc à revoir)
+
+A faire: 
+
+-Créer la hashmap du projet
+-Revoir l'architecture et coder la partie maintenance de la liste des voisins
