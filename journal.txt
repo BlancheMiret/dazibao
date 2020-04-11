@@ -29,7 +29,7 @@ Liens utiles :
 
 http://www.kaushikbaruah.com/posts/data-structure-in-c-hashmap/
 https://www.tutorialspoint.com/data_structures_algorithms/hash_table_program_in_c.htm
-
+https://developer.gnome.org/glib/stable/glib-Hash-Tables.html
 
 Si on utilise la hashmap :
 clé = adresses de socket mais représenté comment ?
