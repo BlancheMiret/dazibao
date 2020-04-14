@@ -24,6 +24,12 @@
 
 #define SIZE 1024
 
+
+//IMPORTANT : Fonction get à revoir
+
+
+
+
 /*
 REMARQUES GÉNÉRALE :
 - Attention à ne pas écrire à des adresses de pointeurs 
@@ -55,6 +61,22 @@ void* main_datagram() {
     return dtg;
 }
 
+
+
+uint8_t get_magic(char * msg) {
+    uint8_t magic;
+    memcpy(&magic, msg, 1);
+    return magic;
+}
+
+uint8_t get_version(char * msg) {
+    uint8_t ver;
+    memcpy(&ver, msg+1, 1);
+    return ver;
+}
+
+
+
 /****** longueur du message principal *******/
 
 
@@ -67,6 +89,11 @@ uint16_t get_body_length(char * message) {
     memcpy(&length, message + 2, 2);
     uint16_t len = ntohs(length);
     return len;
+}
+
+char * get_full_tlv(char * msg, uint8_t length) {
+
+    return msg + MSG_HEADER + length;
 }
 
 
@@ -89,7 +116,7 @@ int set_msg_body(char *message, char *body, uint16_t len) {
 
 // Prend un tlv et retourne son type
 // NB : conversion ? 
-uint8_t getTLV_TYPE(char * tlv) {
+uint8_t get_tlv_type(char * tlv) {
 	uint8_t type;
 	memcpy(&type, tlv, 1);
 	return type;
@@ -98,17 +125,18 @@ uint8_t getTLV_TYPE(char * tlv) {
 
 // Prend un tlv et retourne sa longueur
 // NB : conversion ?
-uint8_t getTLV_LENGTH(char * tlv) {
+uint8_t get_tlv_length(char * tlv) {
 	uint8_t len;
 	memcpy(&len, tlv+1, 1);
 	return len;
 }
 
-
 // Prend un tlv et retourne l'adresse de son body
-char * getTLV_BODY(char * tlv) {
+char * get_tlv_body(char * tlv) {
 	return tlv+TLV_HEADER;
 }
+
+
 
 
 //Création Pad1
@@ -220,7 +248,7 @@ int Node_state_request(char * node_state_req, uint64_t node_id ){
 //Creation de Node State
 // NB : pourquoi pas uint16_t pour node_hash ? 
 // Ça fonctionne une addition hexadecimale + size_t (unsigned int) dans un uint8_t...?
-int Node_state(char * nodestate, uint64_t node_id, uint16_t seqno, char * node_hash,  char * data, size_t data_length) {
+int Node_state(char * nodestate,uint64_t node_id, uint16_t seqno, unsigned char * node_hash,  char * data, size_t data_length) {
 	memset(nodestate, 0, SIZE-MSG_HEADER);
 	uint8_t type = 0x8;
  	uint8_t len = 0x1A + data_length;
@@ -235,6 +263,44 @@ int Node_state(char * nodestate, uint64_t node_id, uint16_t seqno, char * node_h
 }
 
 
+uint64_t get_nodeID(char * tlv){
+    uint64_t node_id;
+    memcpy(&node_id, tlv+2, 16);
+     uint64_t node_id2=be64toh(node_id);
+    return node_id2;
+
+}
+uint8_t get_seqno(char * tlv){
+    uint8_t seqno;
+    memcpy(&seqno, tlv+10, 2);
+    //uint64_t node_id2=be64toh(node_id);
+    return seqno;
+
+}
+
+char * get_nodeHash(char * tlv){
+
+    return tlv + 12;
+
+}
+
+
+char * get_data(char * tlv){
+
+ // uint8_t length = get_tlv_length(tlv);
+
+  //  memcpy(data, tlv+28, length - 26);
+     
+    return tlv+28;
+
+
+}
+
+uint8_t get_data_length(char * tlv) {
+    uint8_t length = get_tlv_length(tlv);
+    return length - 26;
+}
+
 //Creation de warning
 int Warning(char * warning, char * message, int message_length) {
 	memset(warning, 0, SIZE-MSG_HEADER);
@@ -245,6 +311,163 @@ int Warning(char * warning, char * message, int message_length) {
 	memcpy(warning+2, &message, message_length);
 	return len+TLV_HEADER;
 }
+
+char * get_warning_msg(char * warning) {
+    return warning+2;
+}
+
+int get_warning_length(char * warning) {
+    uint8_t len = get_tlv_length(warning);
+    return len;
+}
+
+
+void print_datagram(char * msg) {
+
+    printf("***************************************************\n");
+
+    printf("Magic : %"PRIu8"\n", get_magic(msg));
+    printf("Version : %"PRIu8"\n", get_version(msg));
+
+    uint16_t body_len = get_body_length(msg);
+
+    printf("Body_Length : %"PRIu16"\n", body_len);
+
+    char * full_tlv; 
+
+    uint8_t tlv_type; 
+
+    uint8_t tlv_length; 
+
+    char tlv_content[SIZE];
+
+    int i = 0;
+
+    while(i < body_len) {
+
+        memset(tlv_content, '\0', SIZE);
+
+
+        full_tlv = get_full_tlv(msg, i);
+
+        tlv_type = get_tlv_type(full_tlv);
+
+        tlv_length = get_tlv_length(full_tlv);
+
+        printf("Tlv_Type : %"PRIu8"\n", tlv_type);
+
+
+        if(tlv_type != 0) {
+
+            printf("Tlv_Length : %"PRIu8"\n", tlv_length);
+
+
+}
+
+
+
+
+
+        switch(tlv_type) {
+
+
+            case 0:
+                printf("\n\t -----  TLV PAD1  -----\n");
+                 printf("Tlv_Type : %"PRIu8"\n", tlv_type);
+                 break;
+
+
+            case 1:
+                printf("\n\t -----  TLV PADN  -----\n");
+                 printf("Tlv_Type : %"PRIu8"\n", tlv_type);
+                  break;
+
+            case 2:
+                printf("\n\t -----  TLV NEIGHBOUR REQUEST  -----\n");
+                 printf("Tlv_Type : %"PRIu8"\n", tlv_type);
+                  break;
+
+            case 3:
+                printf("\n\t -----  TLV NEIGHBOUR  -----\n");
+                 printf("Tlv_Type : %"PRIu8"\n", tlv_type);
+                  break;
+            case 4:
+                printf("\n\t -----  TLV NETWORK HASH  -----\n");
+                 printf("Tlv_Type : %"PRIu8"\n", tlv_type);
+                  break;
+            case 5:
+                printf("\n\t -----  TLV NETWORK STATE REQUEST  -----\n");
+                 printf("Tlv_Type : %"PRIu8"\n", tlv_type);
+                  break;
+            case 6:
+                printf("\n\t -----  TLV NODE HASH  -----\n");
+                       printf("Tlv_Type : %"PRIu8"\n", tlv_type);
+                printf("\t\t Node ID : %"PRIu64"\n", get_nodeID(full_tlv));
+                 break;
+
+            case 7:
+                printf("\n\t -----  TLV NODE STATE REQUEST  -----\n");
+                 break;
+
+            case 8:
+                printf("\n\t -----  TLV NODE STATE  -----\n");
+
+
+              //  memcpy(tlv_content, get_data(full_tlv), get_data_length(full_tlv));
+                  printf("\t\t Node ID : %"PRIu64"\n", get_nodeID(full_tlv));
+
+        
+
+       
+              // printf("\t\t data of Node State : %s\n",  get_data(full_tlv));
+                 memset(tlv_content, '\0', SIZE);
+                  memcpy(tlv_content, get_data(full_tlv),get_data_length(full_tlv));
+                printf("\t\tDonnées : %s\n", tlv_content);
+
+                break;
+
+
+            case 9 : 
+
+                printf(" -----  TLV WARNING  -----\n");
+
+                memcpy(tlv_content, get_warning_msg(full_tlv), get_warning_length(full_tlv));
+                printf("\t\tMessage : %s\n", tlv_content);
+      
+                break;
+
+            default : 
+                printf("{\n\tInconnu\n");
+
+
+        }
+         printf("Tlv_Type : %"PRIu8"\n", tlv_type);
+
+
+        if(tlv_type != 0) {
+            i += (tlv_length+TLV_HEADER);
+            printf("Tlv_Length : %"PRIu8"\n", tlv_length);
+
+        } 
+
+        else {
+            i++;
+        }
+
+        
+
+    }
+
+    printf("***************************************************\n");
+
+
+
+}
+
+
+
+
+
 
 
 // TOUT CE QUI SUIT : OK POUR SUPPRESSION ?
