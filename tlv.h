@@ -14,3 +14,4 @@ int Node_hash(char * node_hash, uint64_t node_id, uint16_t seqno, char * hash);
 int Node_state_request(char * node_state_req, uint64_t node_id );
 int Node_state(char * nodestate, uint64_t node_id, uint16_t seqno, char * node_hash,  char * data, size_t data_length);
 int Warning(char * warning, char * message, int message_length);
+void print_datagram(char *msg);

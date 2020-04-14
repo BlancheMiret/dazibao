@@ -266,15 +266,15 @@ int Node_state(char * nodestate,uint64_t node_id, uint16_t seqno, char * node_ha
 
 uint64_t get_nodeID(char * tlv){
     uint64_t node_id;
-    memcpy(&node_id, tlv+2, 16);
-     uint64_t node_id2=be64toh(node_id);
-    return node_id2;
+    memcpy(&node_id, tlv+2, 8);
+    //uint64_t node_id2=be64toh(node_id);
+    return node_id;
 
 }
 uint8_t get_seqno(char * tlv){
-    uint8_t seqno;
+    uint16_t seqno;
     memcpy(&seqno, tlv+10, 2);
-    //uint64_t node_id2=be64toh(node_id);
+    //uint64_t node_id2=be64toh(node_id); 
     return seqno;
 
 }
