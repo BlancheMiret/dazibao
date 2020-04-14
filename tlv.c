@@ -25,8 +25,9 @@
 #define SIZE 1024
 
 
-//IMPORTANT : Fonction get à revoir
 
+
+//IMPORTANT: revoir les méthodes get 
 
 
 
@@ -117,23 +118,23 @@ int set_msg_body(char *message, char *body, uint16_t len) {
 // Prend un tlv et retourne son type
 // NB : conversion ? 
 uint8_t get_tlv_type(char * tlv) {
-	uint8_t type;
-	memcpy(&type, tlv, 1);
-	return type;
+    uint8_t type;
+    memcpy(&type, tlv, 1);
+    return type;
 }
 
 
 // Prend un tlv et retourne sa longueur
 // NB : conversion ?
 uint8_t get_tlv_length(char * tlv) {
-	uint8_t len;
-	memcpy(&len, tlv+1, 1);
-	return len;
+    uint8_t len;
+    memcpy(&len, tlv+1, 1);
+    return len;
 }
 
 // Prend un tlv et retourne l'adresse de son body
 char * get_tlv_body(char * tlv) {
-	return tlv+TLV_HEADER;
+    return tlv+TLV_HEADER;
 }
 
 
@@ -152,114 +153,114 @@ char * get_tlv_body(char * tlv) {
 // D'ailleurs, pour le tlv PAD1, sa longueur est 1 octet !!
 // Rappel : un datagramme peut contenir plusieurs TLV
 int Pad1(char * pad) {
-	memset(pad, 0, SIZE-MSG_HEADER);
-	uint8_t type = 0x0;
-	memcpy(pad, &type, 1);
-	return 1;
+    memset(pad, 0, SIZE-MSG_HEADER);
+    uint8_t type = 0x0;
+    memcpy(pad, &type, 1);
+    return 1;
 }
 
 
 //Création de PadN
 // NB Mêmes commentaires que précédemment
 int PadN(char * pad, uint8_t len) {
-	memset(pad, 0, SIZE-MSG_HEADER);
-	uint8_t type = 0x1;
-	memcpy(pad, &type, 1);
-	memcpy(pad+1, &len, 1);
-	return TLV_HEADER+len;
+    memset(pad, 0, SIZE-MSG_HEADER);
+    uint8_t type = 0x1;
+    memcpy(pad, &type, 1);
+    memcpy(pad+1, &len, 1);
+    return TLV_HEADER+len;
 }
 
 
 //Creation de Neighbour request
 int Neighbour_request(char * neighbourReq) {
-	memset(neighbourReq, 0, SIZE-MSG_HEADER);
-	uint8_t type = 0x2;
-	uint8_t len = 0x0;
-	memcpy(neighbourReq, &type, 1);
-	memcpy(neighbourReq+1, &len, 1);
-	return TLV_HEADER;
+    memset(neighbourReq, 0, SIZE-MSG_HEADER);
+    uint8_t type = 0x2;
+    uint8_t len = 0x0;
+    memcpy(neighbourReq, &type, 1);
+    memcpy(neighbourReq+1, &len, 1);
+    return TLV_HEADER;
 }
 
 
 //Creation de Neighbour 
 int Neighbour(char * neigbour, struct in6_addr IP, in_port_t port) {
-	memset(neigbour, 0, SIZE-MSG_HEADER);
-	uint8_t type = 0x3;
-	//len = 18
-	uint8_t len = 0x12;
-	memcpy(neigbour, &type, 1);
-	memcpy(neigbour+1, &len, 1);
-	memcpy(neigbour+2, &IP, 16);
-	memcpy(neigbour+18, &port, 2);
-	return len+TLV_HEADER;
+    memset(neigbour, 0, SIZE-MSG_HEADER);
+    uint8_t type = 0x3;
+    //len = 18
+    uint8_t len = 0x12;
+    memcpy(neigbour, &type, 1);
+    memcpy(neigbour+1, &len, 1);
+    memcpy(neigbour+2, &IP, 16);
+    memcpy(neigbour+18, &port, 2);
+    return len+TLV_HEADER;
 }
 
 
 //Creation de Network Hash  
 int Network_hash(char * network_hash, char * hash){
     memset(network_hash, 0, SIZE-MSG_HEADER);
-	uint8_t type = 0x4;
- 	uint8_t len = 0x0;
-	memcpy(network_hash, &type, 1);
-	memcpy(network_hash+1, &len, 1);
-	return len+TLV_HEADER;
+    uint8_t type = 0x4;
+    uint8_t len = 0x0;
+    memcpy(network_hash, &type, 1);
+    memcpy(network_hash+1, &len, 1);
+    return len+TLV_HEADER;
 }
 
 
 //Creation de Network State Request
 int Network_state_request(char * network_req){
     memset(network_req, 0, SIZE-MSG_HEADER);
-	uint8_t type = 0x5;
- 	uint8_t len = 0x0;
-	memcpy(network_req, &type, 1);
-	memcpy(network_req+1, &len, 1);
-	return len+TLV_HEADER;
+    uint8_t type = 0x5;
+    uint8_t len = 0x0;
+    memcpy(network_req, &type, 1);
+    memcpy(network_req+1, &len, 1);
+    return len+TLV_HEADER;
 }
 
 
 //Creation de Node Hash
 int Node_hash(char * node_hash, uint64_t node_id, uint16_t seqno, char * hash){
     memset(node_hash, 0, SIZE-MSG_HEADER);
-	uint8_t type = 0x6;
+    uint8_t type = 0x6;
     //len = 26
- 	uint8_t len = 0x1A;
-	memcpy(node_hash, &type, 1);
-	memcpy(node_hash+1, &len, 1);
-	memcpy(node_hash+2, &node_id, 8);
-	memcpy(node_hash+10, &seqno, 2);
-	memcpy(node_hash+12, &hash, 16);
-	return len+TLV_HEADER;
+    uint8_t len = 0x1A;
+    memcpy(node_hash, &type, 1);
+    memcpy(node_hash+1, &len, 1);
+    memcpy(node_hash+2, &node_id, 8);
+    memcpy(node_hash+10, &seqno, 2);
+    memcpy(node_hash+12, &hash, 16);
+    return len+TLV_HEADER;
 }
 
 
 //Creation de Node State Request
 int Node_state_request(char * node_state_req, uint64_t node_id ){
     memset(node_state_req, 0, SIZE-MSG_HEADER);
-	uint8_t type = 0x7;
+    uint8_t type = 0x7;
     //len = 26
- 	uint8_t len = 0x8;
-	memcpy(node_state_req, &type, 1);
-	memcpy(node_state_req+1, &len, 1);
-	memcpy(node_state_req+2, &node_id, 8);
-	return len+TLV_HEADER;
+    uint8_t len = 0x8;
+    memcpy(node_state_req, &type, 1);
+    memcpy(node_state_req+1, &len, 1);
+    memcpy(node_state_req+2, &node_id, 8);
+    return len+TLV_HEADER;
 }
 
 
 //Creation de Node State
 // NB : pourquoi pas uint16_t pour node_hash ? 
 // Ça fonctionne une addition hexadecimale + size_t (unsigned int) dans un uint8_t...?
-int Node_state(char * nodestate,uint64_t node_id, uint16_t seqno, unsigned char * node_hash,  char * data, size_t data_length) {
-	memset(nodestate, 0, SIZE-MSG_HEADER);
-	uint8_t type = 0x8;
- 	uint8_t len = 0x1A + data_length;
- 	//uint64_t new_node_id = htonll(node_id);
-	memcpy(nodestate, &type, 1);
-	memcpy(nodestate+1, &len, 1);
-	memcpy(nodestate+2, &node_id, 8);
-	memcpy(nodestate+10, &seqno, 2);
-	memcpy(nodestate+12, node_hash, 16);
-	memcpy(nodestate+28, data, strlen(data));
-	return len+TLV_HEADER;
+int Node_state(char * nodestate,uint64_t node_id, uint16_t seqno, char * node_hash,  char * data, size_t data_length) {
+    memset(nodestate, 0, SIZE-MSG_HEADER);
+    uint8_t type = 0x8;
+    uint8_t len = 0x1A + data_length;
+    //uint64_t new_node_id = htonll(node_id);
+    memcpy(nodestate, &type, 1);
+    memcpy(nodestate+1, &len, 1);
+    memcpy(nodestate+2, &node_id, 8);
+    memcpy(nodestate+10, &seqno, 2);
+    memcpy(nodestate+12, node_hash, 16);
+    memcpy(nodestate+28, data, strlen(data));
+    return len+TLV_HEADER;
 }
 
 
@@ -303,13 +304,13 @@ uint8_t get_data_length(char * tlv) {
 
 //Creation de warning
 int Warning(char * warning, char * message, int message_length) {
-	memset(warning, 0, SIZE-MSG_HEADER);
-	uint8_t type = 0x9;
-	uint8_t len = message_length;
-	memcpy(warning, &type, 1);
-	memcpy(warning+1, &len, 1);
-	memcpy(warning+2, &message, message_length);
-	return len+TLV_HEADER;
+    memset(warning, 0, SIZE-MSG_HEADER);
+    uint8_t type = 0x9;
+    uint8_t len = message_length;
+    memcpy(warning, &type, 1);
+    memcpy(warning+1, &len, 1);
+    memcpy(warning+2, &message, message_length);
+    return len+TLV_HEADER;
 }
 
 char * get_warning_msg(char * warning) {
@@ -321,6 +322,8 @@ int get_warning_length(char * warning) {
     return len;
 }
 
+
+//Pas complète pour l'instant
 
 void print_datagram(char * msg) {
 
@@ -347,7 +350,6 @@ void print_datagram(char * msg) {
 
         memset(tlv_content, '\0', SIZE);
 
-
         full_tlv = get_full_tlv(msg, i);
 
         tlv_type = get_tlv_type(full_tlv);
@@ -363,8 +365,6 @@ void print_datagram(char * msg) {
 
 
 }
-
-
 
 
 
@@ -415,9 +415,6 @@ void print_datagram(char * msg) {
 
               //  memcpy(tlv_content, get_data(full_tlv), get_data_length(full_tlv));
                   printf("\t\t Node ID : %"PRIu64"\n", get_nodeID(full_tlv));
-
-        
-
        
               // printf("\t\t data of Node State : %s\n",  get_data(full_tlv));
                  memset(tlv_content, '\0', SIZE);
@@ -444,17 +441,15 @@ void print_datagram(char * msg) {
          printf("Tlv_Type : %"PRIu8"\n", tlv_type);
 
 
+
         if(tlv_type != 0) {
             i += (tlv_length+TLV_HEADER);
             printf("Tlv_Length : %"PRIu8"\n", tlv_length);
 
-        } 
-
-        else {
+        } else {
             i++;
         }
-
-        
+       
 
     }
 
@@ -478,11 +473,11 @@ void print_datagram(char * msg) {
 int main (void) {
 
    //ID DE NOTRE NOEUD
-	uint64_t node_id =
-	(((uint64_t) rand() <<  0) & 0x000000000000FFFFull) | 
-	(((uint64_t) rand() << 16) & 0x00000000FFFF0000ull) | 
-	(((uint64_t) rand() << 32) & 0x0000FFFF00000000ull) |
-	(((uint64_t) rand() << 48) & 0xFFFF000000000000ull);
+    uint64_t node_id =
+    (((uint64_t) rand() <<  0) & 0x000000000000FFFFull) | 
+    (((uint64_t) rand() << 16) & 0x00000000FFFF0000ull) | 
+    (((uint64_t) rand() << 32) & 0x0000FFFF00000000ull) |
+    (((uint64_t) rand() << 48) & 0xFFFF000000000000ull);
     printf("node_id %llu\n" PRIu64, node_id) ;
     printf("\n");
     printf("node_id %llu\n", node_id);
@@ -516,11 +511,11 @@ int main (void) {
     //On convertit pour pouvoir l'utiliser dans la méthode SHA256
     //const char * new_triplet = (const char *)triplet;
     //unsigned char *res = SHA256(new_triplet, strlen(new_triplet), 0);
-	unsigned char *res = SHA256((const unsigned char*)triplet, strlen(triplet), 0);
+    unsigned char *res = SHA256((const unsigned char*)triplet, strlen(triplet), 0);
     //On tronque le résultat pour avoir 16 octets (pas sure que ca soit correcte) (Si ça me paraît bien)
     char node_hash[100];
     memcpy(node_hash, &res, 16);
-	
+    
 
     //Creation de message global à envoyer
     char *datagram = malloc(SIZE*sizeof(char));
@@ -605,6 +600,6 @@ int main (void) {
         exit(2);
     }
 
-	return 0;
+    return 0;
 }
 */
