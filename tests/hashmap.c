@@ -77,10 +77,15 @@ int main() {
 	print_neighbour(v1);
 
 	g_hash_table_insert(ht, &k1, &v1);
-	struct neighbour *r = g_hash_table_lookup(ht, &k1);
 
-	printf("------------- SHOWING HASHED VALUE ------------- \n");
+
+	printf("------------ TESTING DIFFERENT TYPE OF KEY ------------ \n");
+	int k2 = 8;
+	g_hash_table_insert(ht, &k2, &v1);
+	struct neighbour *r = g_hash_table_lookup(ht, &k1);
+	struct neighbour *r2 = g_hash_table_lookup(ht, &k2);
 	print_neighbour(*r);
+	print_neighbour(*r2);
 
 }
 
