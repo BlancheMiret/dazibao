@@ -30,7 +30,7 @@ int main (void) {
 
 	// DATA ET NUMÉRO DE SÉQUENCE 
 	data = "If you can walk with kings nor lose the common touch";
-	new_sequence = htons(0x39); //57
+	new_sequence = htons(0x3D); //61
 
 
     // ID DE NOTRE NOEUD -- 
@@ -157,6 +157,57 @@ int main (void) {
         perror("sendto() error");
         exit(2);
     }
+
+
+    /* --------------- PARTIE MAINTENANCE DE LA LISTE DE VOISINS ? (pour l'instant juste un test pour afficher les TLV reçus) ---------------------*/
+
+
+while(1){
+
+   int rc;
+
+    struct sockaddr_in from;
+
+    memset(&from, 0, sizeof(from));
+
+
+    socklen_t from_len = sizeof(from);
+
+    char recvMsg[SIZE];
+    memset(recvMsg, '\0', SIZE);
+
+    rc = recvfrom(sockfd, recvMsg, SIZE, 0, (struct sockaddr *)&from, &from_len);
+
+
+    if(rc < 0) {
+        if(errno == EAGAIN) {
+            return 1;
+        } 
+
+        else {
+            perror("recvfrom : ");
+        }
+    }
+
+    else {
+        printf("Message Reçu !\n");
+       
+    }
+
+    print_datagram(recvMsg) ;
+
+ //   struct timeval now;
+
+  //  gettimeofday(&now, NULL);
+
+
+
+}
+
+
+
+
+
 
 	return 0;
 }
