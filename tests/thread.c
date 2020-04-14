@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+// Fonction appelée par un nouveau thread
 void* f(void *i) {
 	printf("hello\n");
 	printf("%d\n", *(int*)i);
@@ -13,6 +14,7 @@ int main() {
 	int i = 3;
 	//f(&i);
 
+	 // créer un nouveau thread en lui passant une fonction à exécuter
 	pthread_t id;
 	int rc = pthread_create(&id, NULL, &f, &i);
 	if(rc < 0) {

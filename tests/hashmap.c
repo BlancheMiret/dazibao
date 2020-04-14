@@ -1,22 +1,22 @@
-#include <sys/types.h>
-#include <sys/uio.h>
-#include <unistd.h>
+//#include <sys/types.h>
+//#include <sys/uio.h>
+//#include <unistd.h>
 
 #include <stdlib.h> //exit
 #include <stdio.h> //perror, snprintf
-#include <string.h>
-#include <fcntl.h> //open
+//#include <string.h>
+//#include <fcntl.h> //open
 
 #include <glib.h>
 #include <glib/gprintf.h>
 
-#include <sys/socket.h>
-#include <netinet/in.h>
+//#include <sys/socket.h>
+//#include <netinet/in.h>
 
-#include <time.h>
+//#include <time.h>
 #include <sys/time.h>
-#include <sys/types.h>
-#include <netdb.h>
+//#include <sys/types.h>
+//#include <netdb.h>
 
 #include <arpa/inet.h>
 
@@ -58,6 +58,7 @@ int main() {
 
 	// TEST AVEC STRUCTURES - pas d'allocation
 
+	// création d'un voisin qui sera une valeur dans la hashtable
 	struct neighbour v1;
 	memset(&v1, 0, sizeof(struct neighbour));
 	v1.permanent = 0;
@@ -68,6 +69,7 @@ int main() {
 	}
 	v1.last_reception = tp;
 
+	// création d'une struct sockaddr qui sera une clé dans la hashtable
 	struct sockaddr_in6 k1;
 	memset(&k1, 0, sizeof(struct sockaddr_in6));
 
