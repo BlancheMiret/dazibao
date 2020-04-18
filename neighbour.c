@@ -30,7 +30,7 @@ int get_table_len(GHashTable *neighbour_table) {
 
 // Ajoute un voisin dans "neighbour_table" associé à "key" et dont "last_reception" est initilisé au temps courant
 // Retourne -1 en cas d'erreur, 0 sinon
-int add_neighbour(GHashTable *neighbour_table, struct sockaddr_in6 *key, int perm) { 
+int add_neighbour(GHashTable *neighbour_table, struct sockaddr *key, int perm) { 
 	struct timeval tp;
 	if (gettimeofday(&tp, NULL) < 0) {
 		perror("gettimeofday");
@@ -53,7 +53,7 @@ void delete_neighbour(GHashTable *neighbour_table, struct sockaddr *key) {
 
 // Met à jour le champ "last_reception" de la valeur associée à "key" dans "neighbour_table" avec le temps courant 
 // Retourne -1 en cas d'erreur, 0 sinon
-int update_last_reception(GHashTable *neighbour_table, struct sockaddr_in6 *key) { 
+int update_last_reception(GHashTable *neighbour_table, struct sockaddr *key) { 
 	struct neighbour *value = g_hash_table_lookup(neighbour_table, key);
 	if (value == NULL) {
 		perror("Key not present in hashtable.\n");
@@ -103,7 +103,7 @@ void display_neighbour(void *key, void *value, void *user_data) {
 	char IP[INET6_ADDRSTRLEN];
 	int family;
 	int port;
-	switch(k->sa_family) { // <--- puisqu'on sera toujours en struct sin6, à priori pas besoin du switch... Les ipv4 seron mapped... Sauf pour afficher si ipv6 ou ipv4 en fait.
+	switch(k->sa_family) {
 		case AF_INET:
 			inet_ntop(AF_INET, (struct sockaddr_in *)k, IP, INET6_ADDRSTRLEN);
 			family = 4;

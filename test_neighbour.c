@@ -34,10 +34,10 @@ int main() {
 
 	printf("\n---------------------- ADD 3D VALUE ----------------------\n\n");
 
-	struct sockaddr_in6 sin3;
-	memset(&sin3, 0, sizeof(struct sockaddr_in6));
-	sin3.sin6_family = AF_INET; 
-	sin3.sin6_port = 1818;
+	struct sockaddr_in sin3;
+	memset(&sin3, 0, sizeof(struct sockaddr_in));
+	sin3.sin_family = AF_INET; 
+	sin3.sin_port = 1818;
 
 	add_neighbour(ntbl, &sin3, 0);
 	display_neighbour_table(ntbl);
