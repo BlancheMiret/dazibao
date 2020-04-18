@@ -1,6 +1,6 @@
 #include <stdio.h> //perror, snprintf
 #include <stdlib.h> //exit
-
+#include <string.h>
 #include <glib.h>
 #include <glib/gprintf.h>
 
