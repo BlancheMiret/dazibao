@@ -19,10 +19,6 @@
 #include <openssl/sha.h>
 #include "tlv.h"
 
-#define MSG_HEADER 4
-#define TLV_HEADER 2
-
-#define SIZE 1024
 
 
 
@@ -91,6 +87,31 @@ uint16_t get_body_length(char * message) {
     uint16_t len = ntohs(length);
     return len;
 }
+
+
+
+//renvoie 1 si c'est correcte 0 sinon
+
+int check_datagram_header(char * msg_received){
+
+
+    uint16_t body_length = get_body_length(msg_received);
+
+    if ((get_magic(msg_received)== 95) && get_version(msg_received)==1 && (body_length + MSG_HEADER) < SIZE) {
+        
+        printf("true!!");
+        return 1;
+    }
+
+    return 0;
+
+}
+
+
+
+
+
+
 
 char * get_full_tlv(char * msg, uint8_t length) {
 
