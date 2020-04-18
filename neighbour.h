@@ -9,8 +9,7 @@ Besoins :
 
 void* create_neigh_table();
 int get_table_len(GHashTable *neighbour_table);
-int add_neighbour(GHashTable *neighbour_table,struct sockaddr_storage * key, int perm);
-int update_last_reception(GHashTable *neighbour_table, struct sockaddr *key);
+int add_neighbour(GHashTable *neighbour_table, struct sockaddr_in6 *key, int perm);
+int update_last_reception(GHashTable *neighbour_table, struct sockaddr_in6 *key);
 int sweep_neighbour_table(GHashTable *neighbour_table);
-void display_neighbour(struct sockaddr_storage *key, void *value, void *user_data);
-void display_neighbour_table(GHashTable *neighbour_table) ;
+void display_neighbour_table(GHashTable *neighbour_table);
