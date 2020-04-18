@@ -1,6 +1,6 @@
 #include <stdio.h> //perror, snprintf
 #include <stdlib.h> //exit
-#include <string.h> 
+
 #include <glib.h>
 #include <glib/gprintf.h>
 
@@ -30,23 +30,18 @@ int get_table_len(GHashTable *neighbour_table) {
 
 // Ajoute un voisin dans "neighbour_table" associé à "key" et dont "last_reception" est initilisé au temps courant
 // Retourne -1 en cas d'erreur, 0 sinon
-int add_neighbour(GHashTable *neighbour_table, struct sockaddr_storage * key, int perm) { 
-
-
-	
-
+int add_neighbour(GHashTable *neighbour_table, struct sockaddr_in6 *key, int perm) { 
 	struct timeval tp;
 	if (gettimeofday(&tp, NULL) < 0) {
 		perror("gettimeofday");
 		return -1;
 	}	
 	struct neighbour *value = malloc(sizeof(struct neighbour));
-
 	memset(value, 0, sizeof(struct neighbour));
 	value->permanent = perm;
 	value->last_reception = tp;
 
-	g_hash_table_insert(neighbour_table, &key, &value);
+	g_hash_table_insert(neighbour_table, key, value);
 	return 0;
 }
 
@@ -58,9 +53,7 @@ void delete_neighbour(GHashTable *neighbour_table, struct sockaddr *key) {
 
 // Met à jour le champ "last_reception" de la valeur associée à "key" dans "neighbour_table" avec le temps courant 
 // Retourne -1 en cas d'erreur, 0 sinon
-
-
-int update_last_reception(GHashTable *neighbour_table, struct sockaddr *key) {
+int update_last_reception(GHashTable *neighbour_table, struct sockaddr_in6 *key) { 
 	struct neighbour *value = g_hash_table_lookup(neighbour_table, key);
 	if (value == NULL) {
 		perror("Key not present in hashtable.\n");
@@ -104,36 +97,30 @@ int sweep_neighbour_table(GHashTable *neighbour_table) {
 }
 
 // Fonction interne : affiche une paire clé - valeur
-void display_neighbour(struct sockaddr_storage *key, void *value, void *user_data) {
-
-	
-	//struct sockaddr *k = (struct sockaddr *)key;
+void display_neighbour(void *key, void *value, void *user_data) {
+	struct sockaddr *k = (struct sockaddr *)key;
 	struct neighbour *v = (struct neighbour *)value;
-	char IP_4[INET_ADDRSTRLEN];
-	char IP_6[INET6_ADDRSTRLEN];
+	char IP[INET6_ADDRSTRLEN];
 	int family;
 	int port;
-	switch(key->ss_family) {
+	switch(k->sa_family) { // <--- puisqu'on sera toujours en struct sin6, à priori pas besoin du switch... Les ipv4 seron mapped... Sauf pour afficher si ipv6 ou ipv4 en fait.
 		case AF_INET:
-			inet_ntop(AF_INET, (struct sockaddr_in *)key, IP_4, INET_ADDRSTRLEN);
+			inet_ntop(AF_INET, (struct sockaddr_in *)k, IP, INET6_ADDRSTRLEN);
 			family = 4;
-			port = ((struct sockaddr_in *)key)->sin_port;
-			printf("- KEY\n");
-			printf("IP address is : %s\n", IP_4); 
+			port = ((struct sockaddr_in *)k)->sin_port;
 			break;
 		case AF_INET6:
-			inet_ntop(AF_INET6, (struct sockaddr_in6 *)key, IP_6, INET6_ADDRSTRLEN);
+			inet_ntop(AF_INET6, (struct sockaddr_in6 *)k, IP, INET6_ADDRSTRLEN);
 			family = 6;
-			port = ((struct sockaddr_in6 *)key)->sin6_port;
-			printf("- KEY\n");
-			printf("IP address is : %s\n", IP_6); 
+			port = ((struct sockaddr_in6 *)k)->sin6_port;
 			break;
 	}
 
 	printf("--------- NEW NEIGHBOUR --------- \n");
+	printf("- KEY\n");
 	printf("sa_family is : %d\n", family);
 	printf("port is %d\n", port);
-	
+	printf("IP address is : %s\n", IP); 
 
 	printf("- VALUE\n");
 	printf("Is this neighbour permanent ? : %d\n", v->permanent);
