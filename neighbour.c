@@ -100,25 +100,25 @@ int sweep_neighbour_table(GHashTable *neighbour_table) {
 void display_neighbour(void *key, void *value, void *user_data) {
 	struct sockaddr *k = (struct sockaddr *)key;
 	struct neighbour *v = (struct neighbour *)value;
-	char IP[INET6_ADDRSTRLEN];
-	int family;
+	char IP[INET6_ADDRSTRLEN] = {0};
+	char *family;
 	int port;
 	switch(k->sa_family) {
 		case AF_INET:
-			inet_ntop(AF_INET, (struct sockaddr_in *)k, IP, INET6_ADDRSTRLEN);
-			family = 4;
+			inet_ntop(AF_INET, &(((struct sockaddr_in *)k)->sin_addr), IP, INET_ADDRSTRLEN);
+			family = "iPv4";
 			port = ((struct sockaddr_in *)k)->sin_port;
 			break;
 		case AF_INET6:
-			inet_ntop(AF_INET6, (struct sockaddr_in6 *)k, IP, INET6_ADDRSTRLEN);
-			family = 6;
+			inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)k)->sin6_addr), IP, INET6_ADDRSTRLEN);
+			family = "iPv6";
 			port = ((struct sockaddr_in6 *)k)->sin6_port;
 			break;
 	}
 
 	printf("--------- NEW NEIGHBOUR --------- \n");
 	printf("- KEY\n");
-	printf("sa_family is : %d\n", family);
+	printf("sa_family is : %s\n", family);
 	printf("port is %d\n", port);
 	printf("IP address is : %s\n", IP); 
 
