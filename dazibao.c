@@ -26,6 +26,13 @@ char *data;
 uint16_t new_sequence;
 uint64_t node_id;
 
+void print_hexa(char hash[16]) {
+    for (int i = 0; i < 16; i++) {
+        printf("%02x", hash[i]);
+    }
+    printf("\n");
+}
+
 int main (void) {
 
 	// DATA ET NUMÉRO DE SÉQUENCE 
