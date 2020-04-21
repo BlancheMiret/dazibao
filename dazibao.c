@@ -36,8 +36,9 @@ void print_hexa(char hash[16]) {
 int main (void) {
 
 	// DATA ET NUMÉRO DE SÉQUENCE 
-	data = "If you can walk with kings nor lose the common touch";
-	new_sequence = htons(0x3D); //61
+	data = "J'ai passé une excellente soirée mais ce n'était pas celle-ci.";
+	new_sequence = htons(0x3E08); // 0x3D = 61 --- 0x3E08 = 15880 
+
 
 
     // ID DE NOTRE NOEUD -- 
