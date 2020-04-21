@@ -96,7 +96,7 @@ int main (void) {
 
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
+    hints.ai_family = AF_INET6;
     hints.ai_socktype = SOCK_DGRAM;
     //hints.ai_flags = 0;
     hints.ai_protocol = IPPROTO_UDP;
@@ -175,7 +175,7 @@ while(1){
 
    int rc;
 
-    struct sockaddr_in from;
+    struct sockaddr_in6 from;
 
     memset(&from, 0, sizeof(from));
 
