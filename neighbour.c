@@ -119,7 +119,7 @@ void display_neighbour(void *key, void *value, void *user_data) {
 	printf("--------- NEW NEIGHBOUR --------- \n");
 	printf("- KEY\n");
 	printf("sa_family is : %s\n", family);
-	printf("port is %d\n", port);
+	printf("port is %d\n", ntohs(port));
 	printf("IP address is : %s\n", IP); 
 
 	printf("- VALUE\n");
@@ -141,6 +141,22 @@ void display_neighbour_table(GHashTable *neighbour_table) {
 	g_hash_table_foreach(neighbour_table, display_neighbour, NULL);
 }
 
+void neighbour_table_iter(GHashTable *neighbour_table){
+
+GHashTableIter iter;
+gpointer key, value;
+
+g_hash_table_iter_init (&iter, neighbour_table);
+int i=0;
+while (g_hash_table_iter_next (&iter, &key, &value))
+  {
+
+  	i++;
+    printf("indice  %d\n",i);
+  }
+
+
+}
 
 
 

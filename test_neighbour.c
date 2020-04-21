@@ -49,6 +49,8 @@ int main() {
 	update_last_reception(ntbl, (struct sockaddr*)&sin3);
 	display_neighbour_table(ntbl);
 
+	neighbour_table_iter(ntbl);
+
 	sleep(25);
 
 	printf("\n----------------------- SWEEP TABLE ----------------------\n\n");

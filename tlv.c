@@ -99,7 +99,6 @@ int check_datagram_header(char * msg_received){
 
     if ((get_magic(msg_received)== 95) && get_version(msg_received)==1 && (body_length + MSG_HEADER) < SIZE) {
         
-        printf("true!!");
         return 1;
     }
 

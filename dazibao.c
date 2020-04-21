@@ -17,9 +17,10 @@
 #include <net/if.h>
 #include <locale.h>
 #include <openssl/sha.h>
-
+#include <glib.h>
+#include <glib/gprintf.h>
 #include "tlv.h"
-
+#include "neighbour.h"
 #define SIZE 1024
 
 char *data;
@@ -33,8 +34,11 @@ void print_hexa(char hash[16]) {
     printf("\n");
 }
 
+GHashTable *table_voisins;
 int main (void) {
 
+
+    table_voisins = create_neigh_table();
 	// DATA ET NUMÉRO DE SÉQUENCE 
 	data = "J'ai passé une excellente soirée mais ce n'était pas celle-ci.";
 	new_sequence = htons(0x3E08); // 0x3D = 61 --- 0x3E08 = 15880 
@@ -203,17 +207,47 @@ while(1){
        
     }
 
+   if(check_datagram_header(recvMsg) == 1){
+
+
     print_datagram(recvMsg) ;
 
- //   struct timeval now;
+    
 
-  //  gettimeofday(&now, NULL);
+    //Cas où l'émetteur n'est pas présent et la table contient au moins 15 entrées
+
+    if(g_hash_table_lookup (table_voisins,&from) == NULL &&  g_hash_table_size(table_voisins) == 15){
+
+
+        printf("IMPOSSIBLE D'AJOUTER");
+    }
+
+
+   
+    if(g_hash_table_lookup (table_voisins,&from) == NULL &&  g_hash_table_size(table_voisins) < 15){
+
+
+        
+        //ajout d'un voisin transitoire
+       add_neighbour(table_voisins, (struct sockaddr*)&from, 1);
+
+
+       /**if(g_hash_table_lookup (table_voisins,&from) != NULL ){
+
+
+           printf("voisin trouvé !!!!!!!!!!!\n");
+       }**/
+
+
+      //Affichage de la table de voisins :
+
+       display_neighbour_table(table_voisins);
+    }
+}
 
 
 
 }
-
-
 
 
 
