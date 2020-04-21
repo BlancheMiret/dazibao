@@ -55,15 +55,16 @@ int main (void) {
 
 
     //concaténation de node_id & numero de sequence & data pour le hash + 
-    char triplet[100]; 
+    int TRIPLETSIZE = sizeof(uint64_t) + sizeof(uint16_t) + strlen(data);
+    char triplet[TRIPLETSIZE]; 
     memcpy(triplet, &node_id, 8);
     memcpy(triplet+8, &new_sequence, 2); //selon le sujet page 2, si doit bien être en big-endian dans le hash
-    memcpy(triplet+10, &data, strlen(data)+1);
+    memcpy(triplet+10, data, strlen(data));
     //On convertit pour pouvoir l'utiliser dans la méthode SHA256
-	unsigned char *res = SHA256((const unsigned char*)triplet, strlen(triplet), 0);
+	unsigned char *res = SHA256((const unsigned char*)triplet, TRIPLETSIZE, 0);
     //On tronque le résultat pour avoir 16 octets (pas sure que ca soit correcte) (Si ça me paraît bien)
     char node_hash[16];
-    memcpy(node_hash, &res, 16);
+    memcpy(node_hash, res, 16);
 	
 
 	// Blanche : je refais mes remarques, mieux vaut faire les mallocs à l'intérieur des fonctions main_datagrame et Node_state et de renvoyer un pointeur !
