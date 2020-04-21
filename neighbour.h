@@ -13,3 +13,4 @@ int add_neighbour(GHashTable *neighbour_table, struct sockaddr *key, int perm);
 int update_last_reception(GHashTable *neighbour_table, struct sockaddr *key);
 int sweep_neighbour_table(GHashTable *neighbour_table);
 void display_neighbour_table(GHashTable *neighbour_table);
+void neighbour_table_iter(GHashTable *neighbour_table);
