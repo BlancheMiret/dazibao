@@ -119,7 +119,7 @@ void display_neighbour(void *key, void *value, void *user_data) {
 	printf("--------- NEW NEIGHBOUR --------- \n");
 	printf("- KEY\n");
 	printf("sa_family is : %s\n", family);
-	printf("port is %d\n", port);
+	printf("port is %d\n", ntohs(port));
 	printf("IP address is : %s\n", IP); 
 
 	printf("- VALUE\n");
