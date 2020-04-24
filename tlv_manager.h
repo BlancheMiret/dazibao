@@ -18,15 +18,6 @@
 #define SIZE 1024
 
 
-
-/*
-struct in6_addr {
-      unsigned char s6_addr[16];
-};
-*/
-
-
-
 struct neighbour_b { // <------------ SIZE = 18
 	struct in6_addr 	iPv6_addr; // <------------- STOCKÉ EN FORMAT RÉSEAU
 	in_port_t 			port; //<---- STOCKÉ EN FORMAT RÉSEAU
@@ -76,11 +67,12 @@ struct tlv_t {
 struct dtg_t {
 	uint8_t 		magic;
 	uint8_t 		version;
-	uint16_t		body_length; // <----- STOCKÉ EN QUEL FORMAT ? RÉSEAU
+	uint16_t		body_length; // <----- STOCKÉ FORMAT RÉSEAU
 	struct tlv_t 	*tlv_list;
 	int 			nb_tlv;
 };
 
+// Fonctions de créations de TLV : renvoient un pointeur vers un struct tlv_t contenant les bons paramètres
 void *new_pad1();
 void *new_padN(int nbzeros);
 void *new_neighbour_request();
@@ -92,10 +84,18 @@ void *new_node_state_request(uint64_t node_id);
 void *new_node_state(uint64_t node_id, uint16_t seq_no, char node_hash[16], char *data);
 void *new_warning(char *message);
 
+// Fonctions d'affichage d'un tlv individuel ou d'un datagramme entier (et tous les tvl qu'il peut contenir)
 void print_tlv(struct tlv_t *tlv);
 void print_dtg(struct dtg_t *dtg);
 
+// Fonction à utiliser au moment d'envoyer un datagramme :
+// Prend un nombre illimité de tlv et renvoie un pointeur de datagramme tout prêt à envoyer sur le réseau
+// size_dtg est mis à jour pour correspondre à la taille du datagramme
 void *build_tlvs_to_char(int *size_dtg, int nbtlv, ...);
+
+// Fonction à utiliser à la reception d'un datagramme :
+// Renvoie un pointeur vers un struct dtg_t qui contient une liste chaînée de tlv.
+// print_dtg() permet alors d'afficher le datagramme en entier
 void *unpack_dtg(char *buf, int size_dtg);
 
 
