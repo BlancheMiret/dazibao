@@ -21,6 +21,7 @@
 #include <glib/gprintf.h>
 #include "tlv.h"
 #include "neighbour.h"
+#include "tlv_manager.h" // <------- TEST NOUVEAU MODULE
 #define SIZE 1024
 
 char *data;
@@ -77,7 +78,8 @@ int main (void) {
     //On tronque le résultat pour avoir 16 octets (pas sure que ca soit correcte) (Si ça me paraît bien)
     char node_hash[16];
     memcpy(node_hash, res, 16);
-	
+
+    /* TEST NOUVEAU MODULE 
 
 	// Blanche : je refais mes remarques, mieux vaut faire les mallocs à l'intérieur des fonctions main_datagrame et Node_state et de renvoyer un pointeur !
     //Creation de message global à envoyer
@@ -91,6 +93,12 @@ int main (void) {
     
     //taille du datagrame final qu'on va envoyer
     int datagram_length = set_msg_body(datagram, nodestate, node_state_len);
+
+    */
+
+    struct tlv_t *node_state = new_node_state(node_id, new_sequence, node_hash, data);
+    int datagram_length;
+    char *datagram = build_tlvs_to_char(&datagram_length, 1, node_state);
 
 
 /****** paramètres réseaux ********/
@@ -209,8 +217,11 @@ while(1){
 
    if(check_datagram_header(recvMsg) == 1){
 
-
+    /* TEST NOUVEAU MODULE
     print_datagram(recvMsg) ;
+    */
+    struct dtg_t *dtg = unpack_dtg(recvMsg, from_len);
+    print_dtg(dtg);
 
     
 
