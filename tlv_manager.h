@@ -70,6 +70,7 @@ struct tlv_t {
 	uint8_t 		type; // <------- ENUM À CONSTRUIRE ?
 	uint8_t 		length; //pour Pad1, Neighbour Request, Network State Request : 0 / pour PadN : différent de zéro !
 	union tlv_body 	body; //pour Pad1, PadN, Neighbour Request, Network State Request à NULL (pas de body)
+	struct tlv_t 	*next;
 };
 
 struct dtg_t {
@@ -92,8 +93,10 @@ void *new_node_state(uint64_t node_id, uint16_t seq_no, char node_hash[16], char
 void *new_warning(char *message);
 
 void print_tlv(struct tlv_t *tlv);
+void print_dtg(struct dtg_t *dtg);
 
-void *build_dtg(int *size_dtg, int nbtlv, ...);
+void *build_tlvs_to_char(int *size_dtg, int nbtlv, ...);
+void *unpack_dtg(char *buf, int size_dtg);
 
 
 
