@@ -60,7 +60,8 @@ int main() {
 
 	printf("----- DEBUG BUILD TLVS TO CHAR -----\n");
 	int size_dtg;
-	char *dtg_char = build_tlvs_to_char(&size_dtg, 4, tlv2, tlv3, tlv4, tlv5);
+	char *dtg_char = build_tlvs_to_char(&size_dtg, 10, tlv, tlv1, tlv2, tlv3, tlv4, tlv5, tlv6, tlv7, tlv8, tlv9);
+
 
 	printf("--------- DEBUG UNPACK TLV ---------\n");
 
