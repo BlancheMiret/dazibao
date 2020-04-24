@@ -41,7 +41,7 @@ struct nodestate_b { // <---------- SIZE = 26 + taille DATA
 	uint64_t  	node_id;
 	uint16_t  	seq_no; // <------------- STOCKÉ EN FORMAT RÉSEAU
 	char      	node_hash[16];
-	char      	data[192]; // <----------- à memset, et ainsi strlen fonctionne
+	char      	data[192];
 };
 
 struct warning_b {
