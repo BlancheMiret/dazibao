@@ -216,7 +216,7 @@ void *build_tlvs_to_char(int *size_dtg, int nbtlv, ...) { // <----- free les tlv
 	}
 
 	*size_dtg += DTG_HEADER;
-	printf("Total size should be : %d\n", *size_dtg);
+	//printf("Total size should be : %d\n", *size_dtg); // <--- DEBUG
 
 	// ---- CRÉER CHAINE DE CARACTÈRE ET INITIALISER LE HEADER
 
@@ -329,7 +329,7 @@ void *unpack_dtg(char *buf, int size_dtg) {
 
 	while(decount != 0) {
 		if (buf[0] == 0) {
-			printf("Yes, buf equal zero\n");
+			// printf("Yes, buf equal zero\n"); // <--- DEBUG
 			buf += 1; // <---- ignore les pad 1
 			decount -= 1;
 			continue;
@@ -340,7 +340,7 @@ void *unpack_dtg(char *buf, int size_dtg) {
 		memset(*tlv, 0, sizeof(struct tlv_t));
 		unpack_next_tlv(buf, *tlv);
 		decount = decount - (*tlv)->length - TLV_HEADER;
-		printf("TEST DECOUNT %d\n", decount);
+		//printf("TEST DECOUNT %d\n", decount);
 		buf = buf + (*tlv)->length + TLV_HEADER;
 		tlv = &((*tlv)->next); 
 	}
