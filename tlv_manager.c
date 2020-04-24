@@ -194,7 +194,8 @@ void *write_tlv(struct tlv_t *tlv, char *addr) {
 			exit(1);
 	}
 
-	addr = addr + tlv->length + TLV_HEADER; 
+	if (tlv -> type != 0) addr = addr + tlv->length + TLV_HEADER; 
+	else addr = addr + 1;
 	//free(tlv); // <------------------------- BESOIN DE LES SUPPRIMER À UN MOMENT OÙ UN AUTRE
 
 	return addr;
@@ -334,15 +335,16 @@ void *unpack_dtg(char *buf, int size_dtg) {
 			decount -= 1;
 			continue;
 		}
-		dtg->nb_tlv += 1;
 		if (decount == 0) break;
+		dtg->nb_tlv += 1;
+		
 		*tlv = malloc(sizeof(struct tlv_t));
 		memset(*tlv, 0, sizeof(struct tlv_t));
 		unpack_next_tlv(buf, *tlv);
 		decount = decount - (*tlv)->length - TLV_HEADER;
-		//printf("TEST DECOUNT %d\n", decount);
 		buf = buf + (*tlv)->length + TLV_HEADER;
 		tlv = &((*tlv)->next); 
+
 	}
 
 	return dtg;
