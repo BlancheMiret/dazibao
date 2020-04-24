@@ -12,7 +12,7 @@
 #include <arpa/inet.h>
 
 
-#define MSG_HEADER 4
+#define DTG_HEADER 4
 #define TLV_HEADER 2
 
 #define SIZE 1024
@@ -28,8 +28,8 @@ struct in6_addr {
 
 
 struct neighbour_b { // <------------ SIZE = 18
-	struct in6_addr 	iPv6_addr;
-	in_port_t 			port; //<---- ici en réseau ou host ?? Spécification à définir au choix.
+	struct in6_addr 	iPv6_addr; // <------------- STOCKÉ EN FORMAT RÉSEAU
+	in_port_t 			port; //<---- STOCKÉ EN FORMAT RÉSEAU
 };
 
 struct nethash_b { // <------------ SIZE = 16
@@ -38,7 +38,7 @@ struct nethash_b { // <------------ SIZE = 16
 
 struct nodehash_b { // <------------- SIZE = 26
 	uint64_t	node_id;
-	uint16_t	seq_no;
+	uint16_t	seq_no; // <------------- STOCKÉ EN FORMAT RÉSEAU
 	char 		node_hash[16];
 };
 
@@ -48,13 +48,13 @@ struct nodestatereq_b { // <--------- SIZE = 8
 
 struct nodestate_b { // <---------- SIZE = 26 + taille DATA
 	uint64_t  	node_id;
-	uint16_t  	seq_no;
+	uint16_t  	seq_no; // <------------- STOCKÉ EN FORMAT RÉSEAU
 	char      	node_hash[16];
 	char      	data[192]; // <----------- à memset, et ainsi strlen fonctionne
 };
 
 struct warning_b {
-	char		message[SIZE - MSG_HEADER - TLV_HEADER];
+	char		message[SIZE - DTG_HEADER - TLV_HEADER];
 };
 
 union tlv_body {
@@ -67,15 +67,15 @@ union tlv_body {
 };
   
 struct tlv_t {
-	int 			type; // <------- ENUM À CONSTRUIRE ?
-	int 			length; //pour Pad1, Neighbour Request, Network State Request : 0 / pour PadN : différent de zéro !
+	uint8_t 		type; // <------- ENUM À CONSTRUIRE ?
+	uint8_t 		length; //pour Pad1, Neighbour Request, Network State Request : 0 / pour PadN : différent de zéro !
 	union tlv_body 	body; //pour Pad1, PadN, Neighbour Request, Network State Request à NULL (pas de body)
 };
 
 struct dtg_t {
-	int 			magic;
-	int 			version;
-	uint16_t		body_length;
+	uint8_t 		magic;
+	uint8_t 		version;
+	uint16_t		body_length; // <----- STOCKÉ EN QUEL FORMAT ? RÉSEAU
 	struct tlv_t 	*tlv_list;
 	int 			nb_tlv;
 };
@@ -92,6 +92,8 @@ void *new_node_state(uint64_t node_id, uint16_t seq_no, char node_hash[16], char
 void *new_warning(char *message);
 
 void print_tlv(struct tlv_t *tlv);
+
+void *build_dtg(int *size_dtg, int nbtlv, ...);
 
 
 

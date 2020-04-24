@@ -59,6 +59,7 @@ void *new_neighbour_request(){
 	return tlv;
 }
 
+/* port en format RÉSEAU DANS LES PARAMÈTRES*/
 void *new_neighbour(struct in6_addr IP, in_port_t port) {
 	struct tlv_t *tlv = new_tlv();
 	tlv->type = 3;
@@ -93,6 +94,7 @@ void *new_network_state_request() {
 	return tlv;
 }
 
+/* seqno en format RÉSEAU DANS LES PARAMÈTRES*/
 void *new_node_hash(uint64_t node_id, uint16_t seqno, char nodehash[16]) {
 	struct tlv_t *tlv = new_tlv();
 	tlv->type = 6;
@@ -121,6 +123,7 @@ void *new_node_state_request(uint64_t node_id) {
 	return tlv;
 }
 
+/* seqno en format RÉSEAU DANS LES PARAMÈTRES*/
 void *new_node_state(uint64_t node_id, uint16_t seq_no, char node_hash[16], char *data) {
 	if (strlen(data) > 192) exit(1);
 
@@ -155,13 +158,96 @@ void *new_warning(char *message) {
 // ----------------------------------------------------------------------------
 // ----------------------- FONCTION CREATION DATAGRAMME -----------------------
 
+void *write_tlv(struct tlv_t *tlv, char *addr) {
+	memcpy(addr, &tlv->type, 1);
+	if (tlv->type != 0) memcpy(addr + 1, &tlv->length, 1);
 
-void *build_dtg(int nbtlv, ...) {
+	switch(tlv->type) {
+		case 0:
+		case 2:
+		case 5:
+			break;
+
+		case 1:
+			memset(addr + 2, 0, tlv->length);
+			break;
+
+		case 3:
+			memcpy(addr + 2, &tlv->body.neighbour_body->iPv6_addr, 16);
+			memcpy(addr + 18, &tlv->body.neighbour_body->port, 2);
+			break;
+
+		case 4:
+			memcpy(addr + 2, tlv->body.nethash_body->network_hash, 16);
+			break;
+
+		case 6:
+			memcpy(addr + 2, &tlv->body.nodehash_body->node_id, 8);
+			memcpy(addr + 10, &tlv->body.nodehash_body->seq_no, 2);
+			memcpy(addr + 12, tlv->body.nodehash_body->node_hash, 16);
+			break;
+
+		case 7:
+			memcpy(addr + 2, &tlv->body.nodestatereq_body->node_id, 8);
+			break;
+
+		case 8:
+			memcpy(addr + 2, &tlv->body.nodestate_body->node_id, 8);
+			memcpy(addr + 10, &tlv->body.nodestate_body->seq_no, 2);
+			memcpy(addr + 12, tlv->body.nodestate_body->node_hash, 16);
+			memcpy(addr + 28, tlv->body.nodestate_body->data, strlen(tlv->body.nodestate_body->data));
+			break;
+
+		case 9:
+			memcpy(addr+2, tlv->body.warning_body->message, strlen(tlv->body.warning_body->message) - 1);
+			break;
+
+		default :
+			printf("Error type of TLV in write_tlv\n");
+			exit(1);
+	}
+
+	addr = addr + tlv->length + TLV_HEADER;
+
+	return addr;
+}
+
+
+void *build_dtg(int *size_dtg, int nbtlv, ...) { // <----- free les tlv au passage par exemple ? 
 	va_list valist;
-	int i;
-
+	*size_dtg = 0; //sans compter le header
+	struct tlv_t *tlv;
 	va_start(valist, nbtlv);
-	return NULL;
+
+	// --- RÉCUPÉRER LA TAILLE NÉCESSAIRE ET L'ÉCRIRE À L'ADRESSE size_dtg;
+
+	for(int i = 0; i < nbtlv; i++) {
+		tlv = va_arg(valist, struct tlv_t *);
+		*size_dtg += tlv->length + TLV_HEADER;
+	}
+
+	*size_dtg += DTG_HEADER;
+	printf("Total size should be : %d\n", *size_dtg);
+
+	// ---- CRÉER CHAINE DE CARACTÈRE ET INITIALISER LE HEADER
+
+	char *dtg = malloc(*size_dtg);
+	memset(dtg, 0, *size_dtg);
+	uint8_t magic = 0x5F;
+    uint8_t ver = 0x1;
+    memcpy(dtg, &magic, 1);
+    memcpy(dtg+1, &ver, 1);
+
+    // ---- ÉCRIRE CONTENU DES TLV UN PAR UN
+
+    char *begin_tlv = dtg + DTG_HEADER;
+    va_start(valist, nbtlv);
+
+    for(int i = 0; i < nbtlv; i++) {
+    	tlv = va_arg(valist, struct tlv_t *);
+    	begin_tlv = write_tlv(tlv, begin_tlv);
+    }
+	return dtg; 
 }
 
 // ----------------------------------------------------------------------------
@@ -179,7 +265,7 @@ void *build_dtg(int nbtlv, ...) {
 
 void print_IP_addr(struct in6_addr *sin6_addr) {
 	char buf[INET6_ADDRSTRLEN];
-	inet_ntop(AF_INET6, sin6_addr, buf, INET6_ADDRSTRLEN);
+	inet_ntop(AF_INET6, sin6_addr, buf, INET6_ADDRSTRLEN); // <---- DONC ICI CONSIDÉRÉ FORMAT RÉSEAU DANS LA STRUCT
 	printf("IP address is : %s\n", buf);
 }
 
@@ -196,7 +282,7 @@ void print_node_id(uint64_t node_id) {
 }
 
 void print_seqno(uint16_t seqno) { // <---- stocké en format host dans le tlv 
-	printf("Seq num is : %"PRIu16, seqno);
+	printf("Seq num is : %"PRIu16, ntohs(seqno)); // <------------- ICI CONSIDÉRÉ FORMAT RÉSEAU DANS LA STRUCT 
 	printf("\n");
 }
 
@@ -221,7 +307,7 @@ void print_tlv(struct tlv_t *tlv) {
 		case 3:
 			printf("This is a Neighbour tlv.\n");
 			print_IP_addr(&(tlv->body.neighbour_body->iPv6_addr));
-			printf("Port is : %d\n", tlv->body.neighbour_body->port); // stocké en format host dans les tlv utilisés par le programme
+			printf("Port is : %d\n", ntohs(tlv->body.neighbour_body->port)); // <----- ICI CONSIDÉRÉ FORMAT RÉSEAU DANS LA STRUCT
 			break;
 
 		case 4:
