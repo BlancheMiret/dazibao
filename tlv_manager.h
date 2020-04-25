@@ -27,7 +27,7 @@ struct nethash_b { // <------------ SIZE = 16
 	char 		network_hash[16]; 
 };
 
-struct nodehash_b { // <------------- SIZE = 26
+struct nodehash_b { // <------------- SIZE = 26 // (26+ TLV HEADER) * 15 = 420 + DTG HEADER =  424 --> à priori dépasse jamais taille max de 1024 d'un dtg...
 	uint64_t	node_id;
 	uint16_t	seq_no; // <------------- STOCKÉ EN FORMAT RÉSEAU
 	char 		node_hash[16];
@@ -115,14 +115,6 @@ Fonctions niveau supérieur <---- À COMPLÉTER
 - La donnée est-elle la même que chez nous ?
 - Reception node hash : le node hash est-il le même que le notre ? 
 - Ne pas oublier de mettre à jour les node hash, notre node hash, etc.
-
-Fonctions
-- create pour chaque type de tlv, prend paramètres, renvoit un pointeur vers un struct tlv 
-(- un fonction build tlv -> char )
-- une fonction build_dtg qui prend tlv + tlv + tlv... -> dtg -> char 
-
-- une fonction char -> dtg qui renvoit un pointeur vers un dtg tout frais et liste chainée de struct tlv
---> ensuite switch sur tlv->type (ps, les tlv reçus peuvent se traiter indépendamment les uns des autres )
 
 */
 

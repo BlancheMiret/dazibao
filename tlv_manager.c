@@ -145,6 +145,7 @@ void *new_warning(char *message) {
 // ---------------------- FONCTIONS CREATION DATAGRAMME -----------------------
 
 // prend un pointeur vers un tlv, une adresse, et écrit le tlv en mode données concaténées à l'adresse donnée
+// ET renvoie un pointeur vers l'adresse de la fin de l'écriture, pour le prochain tlv à écrire
 void *write_tlv(struct tlv_t *tlv, char *addr) {
 	memcpy(addr, &tlv->type, 1);
 	if (tlv->type != 0) memcpy(addr + 1, &tlv->length, 1);
@@ -208,7 +209,7 @@ void *build_tlvs_to_char(int *size_dtg, int nbtlv, ...) { // <----- free les tlv
 	struct tlv_t *tlv;
 	va_start(valist, nbtlv);
 
-	// --- RÉCUPÉRER LA TAILLE NÉCESSAIRE ET L'ÉCRIRE À L'ADRESSE size_dtg;
+	// --- CALCULER LA TAILLE FINALE DU DATAGRAMME ET L'ÉCRIRE À L'ADRESSE size_dtg; // <----- QUE FAIRE SI TAILLE > 1024 ??
 
 	for(int i = 0; i < nbtlv; i++) {
 		tlv = va_arg(valist, struct tlv_t *);
@@ -217,7 +218,7 @@ void *build_tlvs_to_char(int *size_dtg, int nbtlv, ...) { // <----- free les tlv
 	}
 
 	*size_dtg += DTG_HEADER;
-	//printf("Total size should be : %d\n", *size_dtg); // <--- DEBUG
+	printf("Total size should be : %d\n", *size_dtg); // <--- DEBUG
 
 	// ---- CRÉER CHAINE DE CARACTÈRE ET INITIALISER LE HEADER
 
