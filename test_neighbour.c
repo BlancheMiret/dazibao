@@ -4,10 +4,12 @@
 #include <glib/gprintf.h>
 #include <unistd.h>
 #include <string.h>
-#include "neighbour.h"
+#include "new_neighbour.h"
 
 int main() {
-	GHashTable *ntbl = create_neigh_table();
+
+	struct neighbour ntbl[15];
+	memset(ntbl, 0, 15 * sizeof(struct neighbour));
 
 	printf("\n---------------------- EMPTY TABLE ----------------------\n\n");
 
@@ -37,7 +39,7 @@ int main() {
 	struct sockaddr_in sin3;
 	memset(&sin3, 0, sizeof(struct sockaddr_in));
 	sin3.sin_family = AF_INET; 
-	sin3.sin_port = 1818;
+	sin3.sin_port = htons(1818);
 
 	add_neighbour(ntbl, (struct sockaddr*)&sin3, 0);
 	display_neighbour_table(ntbl);
@@ -49,8 +51,6 @@ int main() {
 	update_last_reception(ntbl, (struct sockaddr*)&sin3);
 	display_neighbour_table(ntbl);
 
-	neighbour_table_iter(ntbl);
-
 	sleep(25);
 
 	printf("\n----------------------- SWEEP TABLE ----------------------\n\n");
@@ -58,5 +58,5 @@ int main() {
 	printf("%d elements deleted.\n", sweep_neighbour_table(ntbl));
 	display_neighbour_table(ntbl);
 
-	printf("Table len : %d\n",get_table_len(ntbl));
+	printf("Table len : %d\n",get_nb_neighbour(ntbl));
 }
