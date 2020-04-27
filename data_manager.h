@@ -13,9 +13,9 @@
 
 // VALUE : struct data
 
-struct data {
-	uint16_t	seq_no;
-	char		data[192];
+struct data_t {
+	uint16_t	seq_no; // <-- STOCKÉ EN ORDRE HOST, PAS RÉSEAU !!!!!
+	char		data[192]; 
 	char		node_hash[16]; // <-- pas obligé de le recalculer à chaque fois tiens...
 };
 
