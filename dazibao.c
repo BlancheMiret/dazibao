@@ -20,8 +20,8 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 #include "tlv.h"
-#include "neighbour.h"
-#include "tlv_manager.h" // <------- TEST NOUVEAU MODULE
+#include "new_neighbour.h" // <--- ATTENTION NOUVEAU MODULE DES VOISINS
+#include "tlv_manager.h"
 #define SIZE 1024
 
 char *data;
@@ -36,10 +36,21 @@ void print_hexa(char hash[16]) {
 }
 
 GHashTable *table_voisins;
+
+struct pstate_t {
+    uint64_t            node_id; // <-- quand même besoin de savoir quel est notre propre noeud au moment de la réponse à un TLV Node State
+    uint16_t            num_seq; // <-- stocké en format réseau |
+    char                *data[192]; //                          | --> en fait, pas nécessaire dans le node_state, mais à ajouter dans la table des données
+    char                node_hash[16]; // <--- ne bouge pas     | 
+    char                network_hash[16]; // <---- à mettre à jour quand nécessaire
+    struct neighbour    neighbour_table[15];
+    GHashTable          *data_table; // <---- hash des noeuds à mettre à jour quand nécessaire
+};
+
 int main (void) {
 
-
-    table_voisins = create_neigh_table();
+    struct pstate_t *peer_state = malloc(sizeof(struct pstate_t));
+    memset(peer_state, 0, sizeof(struct pstate_t));
 	// DATA ET NUMÉRO DE SÉQUENCE 
 	data = "J'ai passé une excellente soirée mais ce n'était pas celle-ci.";
 	new_sequence = htons(0x3E08); // 0x3D = 61 --- 0x3E08 = 15880 
@@ -223,11 +234,16 @@ while(1){
     struct dtg_t *dtg = unpack_dtg(recvMsg, from_len);
     print_dtg(dtg);
 
+    char IP[INET6_ADDRSTRLEN] = {0};
+    inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&from)->sin6_addr), IP, INET6_ADDRSTRLEN);
+    printf("THE IP ADDRESS IS : %s\n", IP);
+
+
     
 
     //Cas où l'émetteur n'est pas présent et la table contient au moins 15 entrées
 
-    if(g_hash_table_lookup (table_voisins,&from) == NULL &&  g_hash_table_size(table_voisins) == 15){
+    if(find_neighbour(peer_state->neighbour_table, (struct sockaddr*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) == 15){
 
 
         printf("IMPOSSIBLE D'AJOUTER");
@@ -235,15 +251,21 @@ while(1){
 
 
    
-    if(g_hash_table_lookup (table_voisins,&from) == NULL &&  g_hash_table_size(table_voisins) < 15){
+    if(find_neighbour(peer_state->neighbour_table, (struct sockaddr*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) < 15){
 
 
         
         //ajout d'un voisin transitoire
-       add_neighbour(table_voisins, (struct sockaddr*)&from, 1);
+       add_neighbour(peer_state->neighbour_table, (struct sockaddr*)&from, 1);
+
+       struct neighbour *neighbour_table = peer_state->neighbour_table;
 
 
-       /**if(g_hash_table_lookup (table_voisins,&from) != NULL ){
+        char IP2[INET6_ADDRSTRLEN] = {0};
+        inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&neighbour_table[0].socket_addr)->sin6_addr), IP2, INET6_ADDRSTRLEN);
+        printf("THE IP ADDRESS IS : %s\n", IP2);
+
+       /**if(find_neighbour (node_state->neighbour_table,&from) != -1 ){
 
 
            printf("voisin trouvé !!!!!!!!!!!\n");
@@ -252,7 +274,7 @@ while(1){
 
       //Affichage de la table de voisins :
 
-       display_neighbour_table(table_voisins);
+       display_neighbour_table(peer_state->neighbour_table);
     }
 }
 
