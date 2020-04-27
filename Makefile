@@ -7,8 +7,8 @@ EXEC = tlv neighbour test_tlv_manager
 
 all : $(EXEC)
 
-tlv : tlv_manager.o tlv.o dazibao.o neighbour.o
-	$(CC) -o tlv tlv_manager.o tlv.o dazibao.o neighbour.o $(CRYPTO) $(PKGCONFIG) -std=gnu99
+tlv : tlv_manager.o tlv.o dazibao.o new_neighbour.o
+	$(CC) -o tlv tlv_manager.o tlv.o dazibao.o new_neighbour.o $(CRYPTO) $(PKGCONFIG) -std=gnu99
 
 tlv.o : tlv.c
 	$(CC) $(CFLAGS) -o tlv.o -c tlv.c $(PKGCONFIG) -std=gnu99
@@ -22,8 +22,11 @@ dazibao.o : dazibao.c tlv.h neighbour.h
 neighbour.o : neighbour.c neighbour.h
 	$(CC) $(CFLAGS) -o neighbour.o -c neighbour.c $(PKGCONFIG) -std=gnu99
 
-neighbour : neighbour.c neighbour.h
-	$(CC) $(CFLAGS) neighbour.c test_neighbour.c $(PKGCONFIG) -o neighbour_exe
+new_neighbour.o : new_neighbour.c new_neighbour.h
+	$(CC) $(CFLAGS) -o new_neighbour.o -c new_neighbour.c -std=gnu99
+
+neighbour : new_neighbour.c new_neighbour.h
+	$(CC) $(CFLAGS) new_neighbour.c test_neighbour.c $(PKGCONFIG) -o neighbour_exe
 
 test_tlv_manager : tlv_manager.c tlv_manager.h
 	$(CC) $(CFLAGS) tlv_manager.c test_tlv_manager.c -o test_tlv_exe $(CRYPTO)
