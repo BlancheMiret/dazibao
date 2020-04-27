@@ -32,10 +32,20 @@ int add_neighbour(GHashTable *neighbour_table, struct sockaddr *key, int perm) {
 	value->permanent = perm;
 	value->last_reception = tp;
 
-	struct sockaddr *key_malloced = malloc(sizeof(struct sockaddr));
-	memcpy(key_malloced, key, sizeof(struct sockaddr));
+	struct sockaddr *key_malloced;
 
-	g_hash_table_insert(neighbour_table, key, value);
+	switch(key->sa_family) {
+		case AF_INET:
+			key_malloced = malloc(sizeof(struct sockaddr_in));
+			memcpy(key_malloced, key, sizeof(struct sockaddr_in));
+			break;
+		case AF_INET6:
+			key_malloced = malloc(sizeof(struct sockaddr_in6));
+			memcpy(key_malloced, key, sizeof(struct sockaddr_in6));
+			break;
+	}
+
+	g_hash_table_insert(neighbour_table, key_malloced, value);
 	return 0;
 }
 
