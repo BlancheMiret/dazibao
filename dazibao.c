@@ -45,7 +45,7 @@ struct nstate_t {
     char        network_hash[16]; // <---- à mettre à jour quand nécessaire
     GHashTable  *neighbour_table;
     GHashTable  *data_table; // <---- hash des noeuds à mettre à jour quand nécessaire
-}
+};
 
 int main (void) {
 
