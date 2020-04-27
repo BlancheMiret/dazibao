@@ -18,12 +18,12 @@ int main() {
 	struct sockaddr_in6 sin6;
 	memset(&sin6, 0, sizeof(struct sockaddr_in6));
 	sin6.sin6_family = AF_INET6; 
-	sin6.sin6_port = 1616;
+	sin6.sin6_port = htons(1616);
 
 	struct sockaddr_in6 sin2;
 	memset(&sin2, 0, sizeof(struct sockaddr_in6));
 	sin2.sin6_family = AF_INET6; 
-	sin2.sin6_port = 1717;
+	sin2.sin6_port = htons(1717);
 
 	add_neighbour(ntbl, (struct sockaddr*)&sin6, 1);
 	add_neighbour(ntbl, (struct sockaddr*)&sin2, 0);
