@@ -2,6 +2,8 @@
 #define __HASH_H__
 
 #include <openssl/sha.h>
+#include <stdio.h>
+#include <string.h>
 //#include <glib.h>
 //#include <glib/gprintf.h>
 
