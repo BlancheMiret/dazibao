@@ -3,7 +3,7 @@ CFLAGS = -Wall -g -std=c11
 LDLIBS = -lm
 CRYPTO = -lcrypto
 PKGCONFIG = `pkg-config --cflags --libs glib-2.0`
-EXEC = tlv test_neighbour test_tlv_manager
+EXEC = tlv test_neighbour test_tlv_manager test_data_manager
 
 all : $(EXEC)
 
