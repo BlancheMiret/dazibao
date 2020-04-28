@@ -360,14 +360,14 @@ void print_IP_addr(struct in6_addr *sin6_addr) {
 	inet_ntop(AF_INET6, sin6_addr, buf, INET6_ADDRSTRLEN); // <---- DONC ICI CONSIDÉRÉ FORMAT RÉSEAU DANS LA STRUCT
 	printf("IP address is : %s\n", buf);
 }
-
+/*
 void print_hash(char hash[16]) { // <---- code de Dao je crois, à revoir...
 	for (int i = 0; i < 16; i++) {
         printf("%02x", hash[i]);
     }
     printf("\n");
 }
-
+*/
 void print_node_id(uint64_t node_id) {
 	printf("Node id is : %"PRIu64"\n", node_id);
 }
