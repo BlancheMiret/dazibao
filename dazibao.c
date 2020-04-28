@@ -22,6 +22,8 @@
 #include "tlv.h"
 #include "neighbour.h"
 #include "tlv_manager.h" // <------- TEST NOUVEAU MODULE
+#include "hash.h"
+#include "data_manager.h"
 #define SIZE 1024
 
 char *data;
