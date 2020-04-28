@@ -13,11 +13,6 @@
 --> VOIR G_HASH_TABLE_FULL, SINON FUITE DE MÉMOIRE
 */
 
-struct neighbour {
-		int 				permanent;
-		struct timeval		last_reception;
-};
-
 // Renvoie un pointeur vers une nouvelle hashtable
 void* create_neigh_table() {
 	return g_hash_table_new(NULL, NULL);
