@@ -45,6 +45,7 @@ A faire:
 
 update 29/04:
 
-- la partie maintenance de voisin ne marche pas correctement avec le nouveau module de neighbour contrairement à l'ancien, le programme ajoute tout le temps le même voisin
+- la partie maintenance de voisin ne marche pas correctement pour l'instant (contrairement à ma version avec l'ancien module de neighbour), 
+le programme ajoute tout le temps le même voisin, il faut que je revois la boucle while + select de dazibao.c
 - Règler le problème d'affichage des IP
 
