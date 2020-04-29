@@ -41,3 +41,10 @@ A faire:
 
 -Créer la hashmap du projet
 -Revoir l'architecture et coder la partie maintenance de la liste des voisins
+
+
+update 29/04:
+
+- la partie maintenance de voisin ne marche pas correctement avec le nouveau module de neighbour contrairement à l'ancien, le programme ajoute tout le temps le même voisin
+- Règler le problème d'affichage des IP
+
