@@ -47,7 +47,20 @@ struct pstate_t {
     GHashTable          *data_table; // <---- hash des noeuds à mettre à jour quand nécessaire
 };
 
+//ajout de signal pour envoyer périodiquement
+volatile sig_atomic_t print_flag = false;
+
+void handle_alarm( int sig ) {
+    print_flag = true;
+}
+
+
 int main (void) {
+
+
+
+    signal( SIGALRM, handle_alarm ); // Install handler first,
+    alarm(20); // before scheduling it to be called.
 
     struct pstate_t *peer_state = malloc(sizeof(struct pstate_t));
     memset(peer_state, 0, sizeof(struct pstate_t));
@@ -135,8 +148,35 @@ int main (void) {
     // Initialisation de la socket
     struct addrinfo *ap;
     int sockfd;
+
+     /* IPv4 */
+    char ipv4[INET_ADDRSTRLEN];
+    struct sockaddr_in *addr4;
+
+    /* IPv6 */
+    char ipv6[INET6_ADDRSTRLEN];
+    struct sockaddr_in6 *addr6;
+
     for (ap = dest_info; ap != NULL; ap = ap->ai_next) {
         sockfd = socket(ap->ai_family, ap->ai_socktype, ap->ai_protocol);
+
+        if (ap->ai_addr->sa_family == AF_INET) {
+            addr4 = (struct sockaddr_in *) ap->ai_addr;
+            inet_ntop(AF_INET, &addr4->sin_addr, ipv4, INET_ADDRSTRLEN);
+            printf("IP de jch.irif.fr ---> %s\n", ipv4);
+
+            printf("*************************\n");
+        }
+        if (ap->ai_addr->sa_family == AF_INET6) {
+            addr6 = (struct sockaddr_in6 *) ap->ai_addr;
+            inet_ntop(AF_INET6, &addr6->sin6_addr, ipv6, INET6_ADDRSTRLEN);
+            printf("IP de jch.irif.fr ---> %s\n", ipv6);
+
+            printf("*************************\n");
+        }
+
+
+
         if (sockfd != -1)
             break;
     }
@@ -160,28 +200,20 @@ int main (void) {
         perror("setsockopt SO_TIMESTAMP");
         exit(2);
     }
-
-
-    /*
-    // Pour mettre la socket en polymorphe  --> erreur à l'exécution
-    one = 0;
-    if(setsockopt(sockfd, IPPROTO_IPV6, IPV6_V6ONLY, &one, sizeof(one)) < 0) {
-    	perror("setsockopt IPV6_V6ONLY");
-    	exit(2);
-    }
-    */
-
-    /* Parametrage pour que la scket soit en mode non bloquant */
-    /* cree une erreur :
-    recvmsg: Resource temporarily unavailable
-    Message recu de :
-    Segmentation fault (core dumped)
-    */
-    // status = fcntl(sockfd, F_GETFL);
-    // if(status < 0) {}
-    // status = fcntl(sockfd, F_SETFL, status | O_NONBLOCK);
-    // if(status < 0) {}
   
+  
+
+   /* Parametrage pour que la socket soit en mode non bloquant */
+ 
+
+    int rc;
+    rc = fcntl(sockfd, F_GETFL);
+    if(rc < 0) {perror("fcntls - get");return -1;}
+
+    rc = fcntl(sockfd, F_SETFL, rc | O_NONBLOCK);
+    if(rc < 0) {perror("fcntls - set");return -1;}
+
+
     //Envoi du paquet Node State
    status = sendto(sockfd, datagram, datagram_length, 0, ap->ai_addr, ap->ai_addrlen);
     if (status == -1)
@@ -196,6 +228,200 @@ int main (void) {
 
 while(1){
 
+
+
+
+//Partie envoie et vérification de la table chaque 20 s 
+ if ( print_flag ) {
+           
+         printf("timeout !! (20 secondes) ");
+        
+        //Vérifier chaque 20 secondes si un voisin transitoire n'a pas émis de paquet depuis 70s
+        sweep_neighbour_table(peer_state->neighbour_table);
+
+
+        display_neighbour_table(peer_state->neighbour_table);
+        printf("NOMBRES DE VOISINS : %d\n", get_nb_neighbour(peer_state->neighbour_table));
+
+        //Envoyer un TLV neighbour request
+
+        if(get_nb_neighbour(peer_state->neighbour_table)< 5){
+
+         char *datagram1 = main_datagram();
+
+    // Création de message Node state 
+    char neighbour_req[SIZE];
+    //taille de node state
+    int neighbour_req_len = Neighbour_request(neighbour_req);
+
+    
+    //taille du datagrame final qu'on va envoyer
+    int datagram_length1 = set_msg_body(datagram1, neighbour_req, neighbour_req_len);
+
+             status = sendto(sockfd, datagram1, datagram_length1, 0, ap->ai_addr, ap->ai_addrlen);
+             if (status == -1)
+             {
+               perror("sendto() error");
+               //exit(2);
+             }
+             else{
+
+                printf("TLV NEIGHBOUR REQUEST ENVOYE");
+             }
+        
+
+    }
+
+
+
+            print_flag = false;
+            alarm(20);
+        }
+
+
+  fd_set readfds;
+  FD_ZERO(&readfds);
+  FD_SET(sockfd, &readfds);
+
+    struct sockaddr_in6 from;
+
+    memset(&from, 0, sizeof(from));
+
+
+    socklen_t from_len = sizeof(from);
+
+    char recvMsg[SIZE];
+    memset(recvMsg, '\0', SIZE);
+
+    
+   // again:
+   // printf("check here for neighbours");
+
+
+    //timeout = 20 secondes 
+    int to = 20;
+    struct timeval timeout = {to,0};
+
+
+    int sel = select(sockfd + 1, &readfds, NULL, NULL, &timeout);
+  
+
+    if(sel < 0) {
+         if (errno == EINTR) {
+            /* We've been interrupted by another signal, and it might be
+             * because of the alarm(3) (using the SIGALRM) or any other
+             * signal we have received externally. */
+            continue;
+        }
+        perror("Select failed");
+        /* Handle the error properly. */
+ 
+        exit(1);
+    }
+    
+
+    //Si une réponse est arrivée sel = 1
+    if (sel > 0) {
+
+        if(FD_ISSET(sockfd,&readfds)){
+
+
+          rc = recvfrom(sockfd, recvMsg, SIZE, 0, (struct sockaddr *)&from, &from_len);
+
+
+    if(rc < 0) {
+        if(errno == EAGAIN) {
+            return 1;
+        } 
+
+        else {
+            perror("recvfrom : ");
+        }
+    }
+
+    else {
+        printf("Message Reçu !\n");
+       
+    }
+
+   if(check_datagram_header(recvMsg) == 1){
+
+
+    /* TEST NOUVEAU MODULE
+    print_datagram(recvMsg) ;
+    */
+    struct dtg_t *dtg = unpack_dtg(recvMsg, from_len);
+    print_dtg(dtg);
+
+    char IP[INET6_ADDRSTRLEN];
+    inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&from)->sin6_addr), IP, INET6_ADDRSTRLEN);
+    printf("THE IP ADDRESS IS : %s\n", IP);
+
+    
+
+     //Cas où l'émetteur n'est pas présent et la table contient au moins 15 entrées
+
+    if(find_neighbour(peer_state->neighbour_table, (struct sockaddr*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) == 15){
+
+
+        printf("IMPOSSIBLE D'AJOUTER");
+    }
+
+
+   
+    if(find_neighbour(peer_state->neighbour_table, (struct sockaddr*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) < 15){
+
+
+        
+        //ajout d'un voisin transitoire
+       add_neighbour(peer_state->neighbour_table, (struct sockaddr*)&from, 1);
+
+       struct neighbour *neighbour_table = peer_state->neighbour_table;
+
+
+        char IP2[INET6_ADDRSTRLEN];
+        inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&neighbour_table[0].socket_addr)->sin6_addr), IP2, INET6_ADDRSTRLEN);
+        printf("(from neighbour table) THE IP ADDRESS IS : %s\n", IP2);
+
+       /**if(find_neighbour (node_state->neighbour_table,&from) != -1 ){
+
+
+           printf("voisin trouvé !!!!!!!!!!!\n");
+       }**/
+
+
+      //Affichage de la table de voisins :
+
+       display_neighbour_table(peer_state->neighbour_table);
+       printf("NOMBRES DE VOISINS : %d\n", get_nb_neighbour(peer_state->neighbour_table));
+    }
+
+    
+
+}
+    
+
+}
+
+
+
+}
+ if(sel == 0 ) {
+
+         //Timeout pour le recvfrom
+    }
+
+
+
+
+
+
+
+
+
+
+/*************************************************************************/
+/**
    int rc;
 
     struct sockaddr_in6 from;
@@ -228,13 +454,13 @@ while(1){
 
    if(check_datagram_header(recvMsg) == 1){
 
-    /* TEST NOUVEAU MODULE
+    // TEST NOUVEAU MODULE
     print_datagram(recvMsg) ;
-    */
+   
     struct dtg_t *dtg = unpack_dtg(recvMsg, from_len);
     print_dtg(dtg);
 
-    char IP[INET6_ADDRSTRLEN] = {0};
+    char IP[INET6_ADDRSTRLEN];
     inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&from)->sin6_addr), IP, INET6_ADDRSTRLEN);
     printf("THE IP ADDRESS IS : %s\n", IP);
 
@@ -261,15 +487,15 @@ while(1){
        struct neighbour *neighbour_table = peer_state->neighbour_table;
 
 
-        char IP2[INET6_ADDRSTRLEN] = {0};
+        char IP2[INET6_ADDRSTRLEN];
         inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&neighbour_table[0].socket_addr)->sin6_addr), IP2, INET6_ADDRSTRLEN);
-        printf("THE IP ADDRESS IS : %s\n", IP2);
+        printf("(from neighbour table) THE IP ADDRESS IS : %s\n", IP2);
 
-       /**if(find_neighbour (node_state->neighbour_table,&from) != -1 ){
+       //if(find_neighbour (node_state->neighbour_table,&from) != -1 ){
 
 
-           printf("voisin trouvé !!!!!!!!!!!\n");
-       }**/
+        //   printf("voisin trouvé !!!!!!!!!!!\n");
+      // }
 
 
       //Affichage de la table de voisins :
@@ -277,7 +503,9 @@ while(1){
        display_neighbour_table(peer_state->neighbour_table);
     }
 }
+**/
 
+/*************************************************************************/
 
 
 }
