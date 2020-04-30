@@ -81,7 +81,7 @@ int main (void) {
     //SIGALRM: ce signal survient lorsqu’une alarme définie par la fonction alarm(..) a expiré
     signal( SIGALRM, handle_alarm ); 
     //Alarme qui se déclenche 
-    alarm(10); 
+    alarm(20); 
 
     struct pstate_t *peer_state = malloc(sizeof(struct pstate_t));
     memset(peer_state, 0, sizeof(struct pstate_t));
@@ -298,7 +298,7 @@ while(1){
 
 
             print_flag = false;
-            alarm(10);
+            alarm(20);
         }
 
 
