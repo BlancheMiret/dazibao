@@ -13,7 +13,7 @@ int get_nb_neighbour(struct neighbour *neighbour_table) {
 
 // Ajoute un voisin dans "neighbour_table" associé à "key" et dont "last_reception" est initilisé au temps courant
 // Retourne -1 en cas d'erreur, 0 sinon
-int add_neighbour(struct neighbour *neighbour_table, struct sockaddr *key, int perm) { 
+int add_neighbour(struct neighbour *neighbour_table, struct sockaddr_storage *key, int perm) { 
 	int i = 0;
 	while(neighbour_table[i].exists && i < NBMAX) i++;
 	if (i == NBMAX) {
@@ -30,16 +30,22 @@ int add_neighbour(struct neighbour *neighbour_table, struct sockaddr *key, int p
 	neighbour_table[i].exists = 1; // 1 = TRUE
 	neighbour_table[i].permanent = perm;
 	neighbour_table[i].last_reception = tp;
+
+
 	neighbour_table[i].socket_addr = *key;
+
+	char IP2[INET6_ADDRSTRLEN];
+        inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&neighbour_table[i].socket_addr)->sin6_addr), IP2, INET6_ADDRSTRLEN);
+        printf("(from add neighbour ) THE IP ADDRESS IS : %s\n", IP2);
 
 	return 0;
 }
 
 // Compare deux structures sockaddr, renvoie 1 si elles sont égales, 0 sinon.
-int struct_addr_equals(struct sockaddr *x, struct sockaddr *y) {
-	if (x->sa_family != y->sa_family) return 0; // FALSE
+int struct_addr_equals(struct sockaddr_storage *x, struct sockaddr_storage *y) {
+	if (x->ss_family != y->ss_family) return 0; // FALSE
 
-	if (x->sa_family == AF_INET) {
+	if (x->ss_family == AF_INET) {
 		struct sockaddr_in *x4 = (void*)x;
 		struct sockaddr_in *y4 = (void*)y;
 		if(ntohl(x4->sin_addr.s_addr) != ntohl(y4->sin_addr.s_addr)) return 0;
@@ -47,11 +53,20 @@ int struct_addr_equals(struct sockaddr *x, struct sockaddr *y) {
 		return 1; // TRUE 
 	}
 
-	if (x->sa_family == AF_INET6) {
+	if (x->ss_family == AF_INET6) {
 		struct sockaddr_in6 *x6 = (void*)x;
 		struct sockaddr_in6 *y6 = (void*)y;
-		int r = memcmp(x6->sin6_addr.s6_addr, y6->sin6_addr.s6_addr, sizeof(x6->sin6_addr.s6_addr));
-		if (r != 0) return 0;
+		int r = memcmp(x6->sin6_addr.s6_addr, y6->sin6_addr.s6_addr, sizeof(struct in6_addr));
+		if (r != 0) {
+			char IP1[INET6_ADDRSTRLEN];
+			char IP2[INET6_ADDRSTRLEN];
+            inet_ntop(AF_INET6, &(x6->sin6_addr), IP1, INET6_ADDRSTRLEN);
+            inet_ntop(AF_INET6, &(y6->sin6_addr), IP2, INET6_ADDRSTRLEN);
+            printf("(IP from sockaddr_in6 *x6 ) THE IP ADDRESS IS : %s\n", IP1);
+            printf("(IP from sockaddr_in6 *y6 ) THE IP ADDRESS IS : %s\n", IP2);
+			
+			return 0;
+		}
 		if(ntohs(x6->sin6_port) != ntohs(y6->sin6_port)) return 0;
 		return 1;
 	}
@@ -62,18 +77,22 @@ int struct_addr_equals(struct sockaddr *x, struct sockaddr *y) {
 
 
 // Cherche un voisin dans la table. Renvoie l'indice dans la table si trouve, -1 sinon.
-int find_neighbour(struct neighbour *neighbour_table, struct sockaddr *key) {
+int find_neighbour(struct neighbour *neighbour_table, struct sockaddr_storage *key) {
 	int i;
 	for (i = 0; i < NBMAX; i++) {
-		if (struct_addr_equals(&neighbour_table[i].socket_addr, key)) return i;
-	}
+		if (struct_addr_equals(&neighbour_table[i].socket_addr, key)) {
+
+            printf("NEIGHBOUR TROUVEEEEEE\n");
+			return i;
+	}}
+	 printf("NEIGHBOUR PAS TROUVEEE\n");
 	return -1; // aucun voisin n'ayant cette adresse de socket n'est présent dans la liste des voisins
 }
 
 
 // Met à jour le champ "last_reception" de la valeur associée à "key" dans "neighbour_table" avec le temps courant 
 // Retourne -1 en cas d'erreur (erreur de gettimeofday, ou bien voisin pas présent dans la table), 0 sinon 
-int update_last_reception(struct neighbour *neighbour_table, struct sockaddr *key) { 
+int update_last_reception(struct neighbour *neighbour_table, struct sockaddr_storage *key) { 
 	int i = find_neighbour(neighbour_table, key);
 
 	if (i == -1) {
@@ -114,12 +133,12 @@ int sweep_neighbour_table(struct neighbour *neighbour_table) {
 // Fonction interne : affiche une paire clé - valeur
 void display_neighbour(struct neighbour *n) {
 
-	struct sockaddr *k = &(n->socket_addr);
+	struct sockaddr_storage *k = &(n->socket_addr);
 	char IP[INET6_ADDRSTRLEN] = {0};
 	char *family;
 	int port;
 
-	switch(n->socket_addr.sa_family) {
+	switch(n->socket_addr.ss_family) {
 		case AF_INET:
 			inet_ntop(AF_INET, &(((struct sockaddr_in *)k)->sin_addr), IP, INET_ADDRSTRLEN);
 			family = "iPv4";
