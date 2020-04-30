@@ -82,10 +82,10 @@ int find_neighbour(struct neighbour *neighbour_table, struct sockaddr_storage *k
 	for (i = 0; i < NBMAX; i++) {
 		if (struct_addr_equals(&neighbour_table[i].socket_addr, key)) {
 
-            printf("NEIGHBOUR TROUVEEEEEE\n");
 			return i;
-	}}
-	 printf("NEIGHBOUR PAS TROUVEEE\n");
+	}
+    }
+
 	return -1; // aucun voisin n'ayant cette adresse de socket n'est présent dans la liste des voisins
 }
 
@@ -178,6 +178,13 @@ void display_neighbour_table(struct neighbour *neighbour_table) {
 }
 
 
+/**struct neighbour pick_neighbour(){
+
+    
+
+
+}
+**/
 /*
 void delete_neighbour(struct neighbour *neighbour_table, struct sockaddr *key) { 
 	for(int i = 0; i < NBMAX; i++) {
