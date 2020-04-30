@@ -81,7 +81,7 @@ int main (void) {
     //SIGALRM: ce signal survient lorsqu’une alarme définie par la fonction alarm(..) a expiré
     signal( SIGALRM, handle_alarm ); 
     //Alarme qui se déclenche 
-    alarm(20); 
+    alarm(10); 
 
     struct pstate_t *peer_state = malloc(sizeof(struct pstate_t));
     memset(peer_state, 0, sizeof(struct pstate_t));
@@ -252,56 +252,6 @@ while(1){
 
 
 
-//Vérifier chaque 20 secondes si un voisin transitoire n'a pas émis de paquet depuis 70s
- if ( print_flag ) {
-           
-         printf("timeout !! (20 secondes) ");
-        
-        
-         //A VERIFIER
-        sweep_neighbour_table(peer_state->neighbour_table);
-
-
-        //display_neighbour_table(peer_state->neighbour_table);
-        printf("NOMBRES DE VOISINS : %d\n", get_nb_neighbour(peer_state->neighbour_table));
-
-        //Envoyer un TLV neighbour request, refaire cette partie en tirant au hasard une entrée de la table
-        //Tirer au hasard un index i ?
-
-        if(get_nb_neighbour(peer_state->neighbour_table)< 5){
-
-         char *datagram1 = main_datagram();
-
-        // Création de message Node state 
-         char neighbour_req[SIZE];
-         //taille de node state
-         int neighbour_req_len = Neighbour_request(neighbour_req);
-
-    
-         //taille du datagrame final qu'on va envoyer
-         int datagram_length1 = set_msg_body(datagram1, neighbour_req, neighbour_req_len);
-
-         status = sendto(sockfd, datagram1, datagram_length1, 0, ap->ai_addr, ap->ai_addrlen);
-             if (status == -1)
-             {
-               perror("sendto() error");
-               //exit(2);
-             }
-             else{
-
-                printf("TLV NEIGHBOUR REQUEST ENVOYE");
-             }
-        
-
-        }
-
-
-
-            print_flag = false;
-            alarm(20);
-        }
-
-
   fd_set readfds;
   FD_ZERO(&readfds);
   FD_SET(sockfd, &readfds);
@@ -348,7 +298,7 @@ while(1){
         if(FD_ISSET(sockfd,&readfds)){
 
 
-          rc = recvfrom(sockfd, recvMsg, SIZE, 0, (struct sockaddr_storage *)&from, &from_len);
+          rc = recvfrom(sockfd, recvMsg, SIZE, 0, (struct sockaddr *)&from, &from_len);
 
 
     if(rc < 0) {
@@ -384,28 +334,28 @@ while(1){
 
      //Cas où l'émetteur n'est pas présent et la table contient au moins 15 entrées
 
-    if(find_neighbour(peer_state->neighbour_table, (struct sockaddr*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) == 15){
+    if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) == 15){
 
         printf("IMPOSSIBLE D'AJOUTER");
     }
 
 
    
-    if(find_neighbour(peer_state->neighbour_table, (struct sockaddr*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) < 15){
+    if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) < 15){
 
 
         
         //ajout d'un voisin permanent
         if(compare_addr(&addr6->sin6_addr, &from.sin6_addr) == 0){
 
-            add_neighbour(peer_state->neighbour_table, (struct sockaddr*)&from, 1);
+            add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from, 1);
             printf("voisin jch.irif.fr ajouté!! \n");
         }
         
         //ajout d'un voisin transitoire
         else{
 
-            add_neighbour(peer_state->neighbour_table, (struct sockaddr*)&from, 0);
+            add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from, 0);
         }
 
        struct neighbour *neighbour_table = peer_state->neighbour_table;
@@ -424,10 +374,10 @@ while(1){
 
 
     //Si le voisin est déjà présent mettre à jour la date de dernière réception de paquet
-    if(find_neighbour(peer_state->neighbour_table, (struct sockaddr*)&from) != -1 ){
+    if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) != -1 ){
 
          //A VERIFIER
-        update_last_reception(peer_state->neighbour_table, (struct sockaddr*)&from);
+        update_last_reception(peer_state->neighbour_table, (struct sockaddr_storage*)&from);
 
     }
 
@@ -445,6 +395,55 @@ while(1){
 
          //Timeout pour le recvfrom, faire un goto??
     }
+
+    //Vérifier chaque 20 secondes si un voisin transitoire n'a pas émis de paquet depuis 70s
+ if ( print_flag ) {
+           
+         printf("timeout !! (20 secondes) ");
+        
+        
+         //A VERIFIER
+        sweep_neighbour_table(peer_state->neighbour_table);
+
+
+        //display_neighbour_table(peer_state->neighbour_table);
+        printf("NOMBRES DE VOISINS : %d\n", get_nb_neighbour(peer_state->neighbour_table));
+
+        //Envoyer un TLV neighbour request, refaire cette partie en tirant au hasard une entrée de la table
+        //Tirer au hasard un index i ?
+
+        if(get_nb_neighbour(peer_state->neighbour_table)< 5){
+
+         char *datagram1 = main_datagram();
+
+        // Création de message Node state 
+         char neighbour_req[SIZE];
+         //taille de node state
+         int neighbour_req_len = Neighbour_request(neighbour_req);
+
+    
+         //taille du datagrame final qu'on va envoyer
+         int datagram_length1 = set_msg_body(datagram1, neighbour_req, neighbour_req_len);
+
+         status = sendto(sockfd, datagram1, datagram_length1, 0, ap->ai_addr, ap->ai_addrlen);
+             if (status == -1)
+             {
+               perror("sendto() error");
+               //exit(2);
+             }
+             else{
+
+                printf("TLV NEIGHBOUR REQUEST ENVOYE");
+             }
+        
+
+        }
+
+
+
+            print_flag = false;
+            alarm(10);
+        }
 
 
 
