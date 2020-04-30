@@ -182,11 +182,11 @@ struct neighbour * pick_neighbour(struct neighbour *neighbour_table){
 
     struct neighbour * chosen_neighbour= malloc(sizeof(struct neighbour));
     
-
+      srand(time(NULL));
       while(1){
 
-      srand(time(NULL));
-      int rand_num = rand()%((15+1)-0) + 0;
+      
+      int rand_num = rand()%((14+1)-0) + 0;
       printf("%d\n",rand_num);
 
       if (neighbour_table[rand_num].exists == 1){
