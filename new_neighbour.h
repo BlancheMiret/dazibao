@@ -13,13 +13,13 @@ struct neighbour {
 		int					exists;
 		int 				permanent;
 		struct timeval		last_reception;
-		struct sockaddr		socket_addr;
+		struct sockaddr_storage		socket_addr;
 };
 
 int get_nb_neighbour(struct neighbour *neighbour_table);
-int add_neighbour(struct neighbour *neighbour_table, struct sockaddr *key, int perm);
-int find_neighbour(struct neighbour *neighbour_table, struct sockaddr *key);
-int update_last_reception(struct neighbour *neighbour_table, struct sockaddr *key);
+int add_neighbour(struct neighbour *neighbour_table, struct sockaddr_storage *key, int perm);
+int find_neighbour(struct neighbour *neighbour_table, struct sockaddr_storage *key);
+int update_last_reception(struct neighbour *neighbour_table, struct sockaddr_storage *key);
 int sweep_neighbour_table(struct neighbour *neighbour_table);
 void display_neighbour_table(struct neighbour *neighbour_table);
 
