@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
 struct neighbour {
 		int					exists;
@@ -22,5 +23,8 @@ int find_neighbour(struct neighbour *neighbour_table, struct sockaddr_storage *k
 int update_last_reception(struct neighbour *neighbour_table, struct sockaddr_storage *key);
 int sweep_neighbour_table(struct neighbour *neighbour_table);
 void display_neighbour_table(struct neighbour *neighbour_table);
+void display_neighbour(struct neighbour *n);
+struct neighbour* pick_neighbour(struct neighbour *neighbour_table);
+
 
 #endif
