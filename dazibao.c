@@ -47,20 +47,41 @@ struct pstate_t {
     GHashTable          *data_table; // <---- hash des noeuds à mettre à jour quand nécessaire
 };
 
-//ajout de signal pour envoyer périodiquement
+
+//variable globale pour notifier la capture d'un signal
 volatile sig_atomic_t print_flag = false;
 
-void handle_alarm( int sig ) {
+//Gestionnaire de signal
+
+void handle_alarm(int sig) {
     print_flag = true;
+}
+
+
+
+
+//Compare deux adresses ipv6, si ils sont égaux retourne 0
+int compare_addr(struct in6_addr *IP1, struct in6_addr *IP2)
+{
+    int i = 0;
+    for(i = 0; i < 16; ++i) 
+    {
+        if (IP1->s6_addr[i] < IP2->s6_addr[i])
+            return -1;
+        else if (IP1->s6_addr[i] > IP2->s6_addr[i])
+            return 1;
+    }
+    return 0;
 }
 
 
 int main (void) {
 
 
-
-    signal( SIGALRM, handle_alarm ); // Install handler first,
-    alarm(20); // before scheduling it to be called.
+    //SIGALRM: ce signal survient lorsqu’une alarme définie par la fonction alarm(..) a expiré
+    signal( SIGALRM, handle_alarm ); 
+    //Alarme qui se déclenche 
+    alarm(10); 
 
     struct pstate_t *peer_state = malloc(sizeof(struct pstate_t));
     memset(peer_state, 0, sizeof(struct pstate_t));
@@ -231,34 +252,36 @@ while(1){
 
 
 
-//Partie envoie et vérification de la table chaque 20 s 
+//Vérifier chaque 20 secondes si un voisin transitoire n'a pas émis de paquet depuis 70s
  if ( print_flag ) {
            
          printf("timeout !! (20 secondes) ");
         
-        //Vérifier chaque 20 secondes si un voisin transitoire n'a pas émis de paquet depuis 70s
+        
+         //A VERIFIER
         sweep_neighbour_table(peer_state->neighbour_table);
 
 
-        display_neighbour_table(peer_state->neighbour_table);
+        //display_neighbour_table(peer_state->neighbour_table);
         printf("NOMBRES DE VOISINS : %d\n", get_nb_neighbour(peer_state->neighbour_table));
 
-        //Envoyer un TLV neighbour request
+        //Envoyer un TLV neighbour request, refaire cette partie en tirant au hasard une entrée de la table
+        //Tirer au hasard un index i ?
 
         if(get_nb_neighbour(peer_state->neighbour_table)< 5){
 
          char *datagram1 = main_datagram();
 
-    // Création de message Node state 
-    char neighbour_req[SIZE];
-    //taille de node state
-    int neighbour_req_len = Neighbour_request(neighbour_req);
+        // Création de message Node state 
+         char neighbour_req[SIZE];
+         //taille de node state
+         int neighbour_req_len = Neighbour_request(neighbour_req);
 
     
-    //taille du datagrame final qu'on va envoyer
-    int datagram_length1 = set_msg_body(datagram1, neighbour_req, neighbour_req_len);
+         //taille du datagrame final qu'on va envoyer
+         int datagram_length1 = set_msg_body(datagram1, neighbour_req, neighbour_req_len);
 
-             status = sendto(sockfd, datagram1, datagram_length1, 0, ap->ai_addr, ap->ai_addrlen);
+         status = sendto(sockfd, datagram1, datagram_length1, 0, ap->ai_addr, ap->ai_addrlen);
              if (status == -1)
              {
                perror("sendto() error");
@@ -270,12 +293,12 @@ while(1){
              }
         
 
-    }
+        }
 
 
 
             print_flag = false;
-            alarm(20);
+            alarm(10);
         }
 
 
@@ -307,10 +330,9 @@ while(1){
   
 
     if(sel < 0) {
-         if (errno == EINTR) {
-            /* We've been interrupted by another signal, and it might be
-             * because of the alarm(3) (using the SIGALRM) or any other
-             * signal we have received externally. */
+
+        //interrompu par un signal
+         if (errno == EINTR) {    
             continue;
         }
         perror("Select failed");
@@ -326,7 +348,7 @@ while(1){
         if(FD_ISSET(sockfd,&readfds)){
 
 
-          rc = recvfrom(sockfd, recvMsg, SIZE, 0, (struct sockaddr *)&from, &from_len);
+          rc = recvfrom(sockfd, recvMsg, SIZE, 0, (struct sockaddr_storage *)&from, &from_len);
 
 
     if(rc < 0) {
@@ -344,6 +366,7 @@ while(1){
        
     }
 
+   //On vérifie si l'entête est incorrecte
    if(check_datagram_header(recvMsg) == 1){
 
 
@@ -363,7 +386,6 @@ while(1){
 
     if(find_neighbour(peer_state->neighbour_table, (struct sockaddr*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) == 15){
 
-
         printf("IMPOSSIBLE D'AJOUTER");
     }
 
@@ -373,8 +395,18 @@ while(1){
 
 
         
+        //ajout d'un voisin permanent
+        if(compare_addr(&addr6->sin6_addr, &from.sin6_addr) == 0){
+
+            add_neighbour(peer_state->neighbour_table, (struct sockaddr*)&from, 1);
+            printf("voisin jch.irif.fr ajouté!! \n");
+        }
+        
         //ajout d'un voisin transitoire
-       add_neighbour(peer_state->neighbour_table, (struct sockaddr*)&from, 1);
+        else{
+
+            add_neighbour(peer_state->neighbour_table, (struct sockaddr*)&from, 0);
+        }
 
        struct neighbour *neighbour_table = peer_state->neighbour_table;
 
@@ -383,17 +415,20 @@ while(1){
         inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&neighbour_table[0].socket_addr)->sin6_addr), IP2, INET6_ADDRSTRLEN);
         printf("(from neighbour table) THE IP ADDRESS IS : %s\n", IP2);
 
-       /**if(find_neighbour (node_state->neighbour_table,&from) != -1 ){
-
-
-           printf("voisin trouvé !!!!!!!!!!!\n");
-       }**/
-
 
       //Affichage de la table de voisins :
 
        display_neighbour_table(peer_state->neighbour_table);
        printf("NOMBRES DE VOISINS : %d\n", get_nb_neighbour(peer_state->neighbour_table));
+    }
+
+
+    //Si le voisin est déjà présent mettre à jour la date de dernière réception de paquet
+    if(find_neighbour(peer_state->neighbour_table, (struct sockaddr*)&from) != -1 ){
+
+         //A VERIFIER
+        update_last_reception(peer_state->neighbour_table, (struct sockaddr*)&from);
+
     }
 
     
@@ -408,7 +443,7 @@ while(1){
 }
  if(sel == 0 ) {
 
-         //Timeout pour le recvfrom
+         //Timeout pour le recvfrom, faire un goto??
     }
 
 
