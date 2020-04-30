@@ -27,8 +27,8 @@ int main() {
 	sin2.sin6_family = AF_INET6; 
 	sin2.sin6_port = htons(1717);
 
-	add_neighbour(ntbl, (struct sockaddr*)&sin6, 1);
-	add_neighbour(ntbl, (struct sockaddr*)&sin2, 0);
+	add_neighbour(ntbl, (struct sockaddr_storage*)&sin6, 1);
+	add_neighbour(ntbl, (struct sockaddr_storage*)&sin2, 0);
 	display_neighbour_table(ntbl);
 
 
@@ -41,14 +41,14 @@ int main() {
 	sin3.sin_family = AF_INET; 
 	sin3.sin_port = htons(1818);
 
-	add_neighbour(ntbl, (struct sockaddr*)&sin3, 0);
+	add_neighbour(ntbl, (struct sockaddr_storage*)&sin3, 0);
 	display_neighbour_table(ntbl);
 
 	sleep(25);
 
 	printf("\n-------------------- UPDATE 3D VALUE ---------------------\n\n");
 
-	update_last_reception(ntbl, (struct sockaddr*)&sin3);
+	update_last_reception(ntbl, (struct sockaddr_storage*)&sin3);
 	display_neighbour_table(ntbl);
 
 	sleep(25);
