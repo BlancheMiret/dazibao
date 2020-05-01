@@ -41,11 +41,19 @@ tlv_manager.o : tlv_manager.c tlv_manager.h hash.h
 neighbour.o : neighbour.c neighbour.h
 	$(CC) $(CFLAGS) -o neighbour.o -c neighbour.c $(PKGCONFIG) -std=gnu99
 
+
 data_manager.o : data_manager.c data_manager.h hash.h
 	$(CC) $(CFLAGS) -c data_manager.c -o data_manager.o $(PKGCONFIG)-std=gnu99
 
 hash.o : hash.c hash.h
 	$(CC) $(CFLAGS) -c hash.c -o hash.o $(CRYPTO) $(PKGCONFIG)-std=gnu99
+
+new_neighbour.o : new_neighbour.c new_neighbour.h
+	$(CC) $(CFLAGS) -o new_neighbour.o -c new_neighbour.c -std=gnu99
+
+neighbour : new_neighbour.c new_neighbour.h
+	$(CC) $(CFLAGS) new_neighbour.c test_neighbour.c $(PKGCONFIG) -o neighbour_exe
+
 
 
 

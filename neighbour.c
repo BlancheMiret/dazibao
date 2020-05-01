@@ -1,12 +1,3 @@
-#include <stdio.h> //perror, snprintf
-#include <stdlib.h> //exit
-#include <string.h>
-#include <glib.h>
-#include <glib/gprintf.h>
-
-#include <sys/time.h>
-#include <arpa/inet.h>
-
 #include "neighbour.h"
 
 /* ATTENTION : ON PART DU PRINCIPE QUE LES VALEURS SONT ALLOUÉES DYNAMIQUEMENT ?? 
@@ -15,7 +6,7 @@
 
 // Renvoie un pointeur vers une nouvelle hashtable
 void* create_neigh_table() {
-	return g_hash_table_new(NULL, NULL);
+	return g_hash_table_new_full(NULL, NULL, free, free);
 }
 
 // Renvoie le nombre d'éléments dans neighbour_table
@@ -36,7 +27,20 @@ int add_neighbour(GHashTable *neighbour_table, struct sockaddr *key, int perm) {
 	value->permanent = perm;
 	value->last_reception = tp;
 
-	g_hash_table_insert(neighbour_table, key, value);
+	struct sockaddr *key_malloced;
+
+	switch(key->sa_family) {
+		case AF_INET:
+			key_malloced = malloc(sizeof(struct sockaddr_in));
+			memcpy(key_malloced, key, sizeof(struct sockaddr_in));
+			break;
+		case AF_INET6:
+			key_malloced = malloc(sizeof(struct sockaddr_in6));
+			memcpy(key_malloced, key, sizeof(struct sockaddr_in6));
+			break;
+	}
+
+	g_hash_table_insert(neighbour_table, key_malloced, value);
 	return 0;
 }
 
