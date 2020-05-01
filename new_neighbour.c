@@ -180,27 +180,17 @@ void display_neighbour_table(struct neighbour *neighbour_table) {
 
 struct neighbour * pick_neighbour(struct neighbour *neighbour_table){
 
-    struct neighbour * neighbour_choosen= malloc(sizeof(struct neighbour));
-    
-      srand(time(NULL));
-      while(1){
-
-      
-      int rand_num = rand()%((14+1)-0) + 0;
-      //printf("%d\n",rand_num);
-
-      if (neighbour_table[rand_num].exists == 1){
-     
-
-        neighbour_choosen=&neighbour_table[rand_num];
- 		break;
-    }
-
-      }
-     
-   
-   return neighbour_choosen;
-
+	struct neighbour * neighbour_choosen = malloc(sizeof(struct neighbour));
+	srand(time(NULL));
+	while(1){
+		int rand_num = rand()%((14+1)-0) + 0;
+		//printf("%d\n",rand_num);
+		if (neighbour_table[rand_num].exists == 1){
+			neighbour_choosen=&neighbour_table[rand_num];
+			break;
+		}
+	}
+	return neighbour_choosen;
 }
 
 /*
