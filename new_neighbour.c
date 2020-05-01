@@ -20,7 +20,7 @@ int add_neighbour(struct neighbour *neighbour_table, struct sockaddr_storage *ke
 		perror("Already 15 neighbour.\n");
 		return -1;
 	}
-    printf("LE I EEEEEEEEEEEEEEEEEEEEEEEEEEEEST %d", i);
+    
 	struct timeval tp;
 	if (gettimeofday(&tp, NULL) < 0) {
 		perror("gettimeofday");
@@ -180,26 +180,26 @@ void display_neighbour_table(struct neighbour *neighbour_table) {
 
 struct neighbour * pick_neighbour(struct neighbour *neighbour_table){
 
-    struct neighbour * chosen_neighbour= malloc(sizeof(struct neighbour));
+    struct neighbour * neighbour_choosen= malloc(sizeof(struct neighbour));
     
       srand(time(NULL));
       while(1){
 
       
       int rand_num = rand()%((14+1)-0) + 0;
-      printf("%d\n",rand_num);
+      //printf("%d\n",rand_num);
 
       if (neighbour_table[rand_num].exists == 1){
      
 
-        chosen_neighbour=&neighbour_table[rand_num];
+        neighbour_choosen=&neighbour_table[rand_num];
  		break;
     }
 
       }
      
    
-   return chosen_neighbour;
+   return neighbour_choosen;
 
 }
 
