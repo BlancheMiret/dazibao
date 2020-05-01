@@ -54,8 +54,8 @@ new_neighbour.o : new_neighbour.c new_neighbour.h
 neighbour : new_neighbour.c new_neighbour.h
 	$(CC) $(CFLAGS) new_neighbour.c test_neighbour.c $(PKGCONFIG) -o neighbour_exe
 
-
-
+hash_network.o : hash_network.c hash_network.h
+	$(CC) $(CFLAGS) -c hash_network.c -o hash_network.o $(PKGCONFIG)
 
 cleanall:
 	rm -rf *~ $(ALL)
