@@ -18,6 +18,11 @@ Besoins :
 
 */
 
+struct neighbour {
+		int 				permanent;
+		struct timeval		last_reception;
+};
+
 void* create_neigh_table();
 int get_table_len(GHashTable *neighbour_table);
 int add_neighbour(GHashTable *neighbour_table, struct sockaddr *key, int perm);

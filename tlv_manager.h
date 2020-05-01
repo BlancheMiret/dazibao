@@ -11,6 +11,8 @@
 #include <stdarg.h>
 #include <arpa/inet.h>
 
+#include "hash.h"
+
 
 #define DTG_HEADER 4
 #define TLV_HEADER 2
