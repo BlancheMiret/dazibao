@@ -9,11 +9,11 @@ all : $(EXEC)
 
 #################### LINKING
 
-tlv : dazibao.o tlv_manager.o tlv.o neighbour.o data_manager.o hash.o 
-	$(CC) -o tlv dazibao.o tlv_manager.o tlv.o neighbour.o data_manager.o hash.o $(CRYPTO) $(PKGCONFIG) -std=gnu99
+tlv : dazibao.o tlv_manager.o tlv.o new_neighbour.o data_manager.o hash.o 
+	$(CC) -o tlv dazibao.o tlv_manager.o tlv.o new_neighbour.o data_manager.o hash.o $(CRYPTO) $(PKGCONFIG) -std=gnu99
 
-test_neighbour : test_neighbour.o neighbour.o
-	$(CC) $(CFLAGS) test_neighbour.o neighbour.o $(PKGCONFIG) -o test_neighbour_exe
+test_neighbour : test_neighbour.o new_neighbour.o
+	$(CC) $(CFLAGS) test_neighbour.o new_neighbour.o $(PKGCONFIG) -o test_neighbour_exe
 
 test_tlv_manager : test_tlv_manager.o tlv_manager.o hash.o
 	$(CC) $(CFLAGS) test_tlv_manager.o tlv_manager.o hash.o -o test_tlv_exe $(CRYPTO)
