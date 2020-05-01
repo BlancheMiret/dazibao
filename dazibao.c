@@ -245,8 +245,7 @@ int main (void) {
 				struct tlv_t *neighbour_req = new_neighbour_request();
 				int datagram_length1;
 				char *datagram1 = build_tlvs_to_char(&datagram_length1, 1, neighbour_req);
-
-				status = sendto(sockfd, datagram1, datagram_length1, 0, (const struct sockaddr*)&neighbour_choosen->socket_addr, (socklen_t)sizeof(neighbour_choosen->socket_addr));
+				status = sendto(sockfd, datagram1, datagram_length1, 0, (const struct sockaddr*)&neighbour_choosen->socket_addr, sizeof(struct sockaddr_in6));
 				if (status == -1) {
 					perror("sendto() error");
 					//exit(2);
