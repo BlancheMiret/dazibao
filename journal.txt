@@ -47,17 +47,18 @@ update 29/04:
 
 Asmaa:
 - la partie maintenance de voisin ne marche pas correctement pour l'instant (contrairement à ma version avec l'ancien module de neighbour), 
-le programme ajoute tout le temps le même voisin, il faut que je revois la boucle while + select de dazibao.c
+le programme ajoute tout le temps le même voisin, il faut que je revois la boucle while + select de dazibao.c (problème réglé)
 - Règler le problème d'affichage des IP (fait)
 
 update 30/04:
 
 Asmaa:
+
 A faire: 
 
 -Ajouter une variable globale int debug = 0; qui est mise à 1 si l'utilisateur passe l'option "-d" sur la ligne de commande.
 
 -Revoir la partie select et les signaux avec pselect
 
-- Organiser quelques parties du code
+-Organiser quelques parties du code
 
