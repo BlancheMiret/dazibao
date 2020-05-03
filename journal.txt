@@ -56,9 +56,17 @@ Asmaa:
 
 A faire: 
 
--Ajouter une variable globale int debug = 0; qui est mise à 1 si l'utilisateur passe l'option "-d" sur la ligne de commande.
+-Ajouter une variable globale int debug = 0; qui est mise à 1 si l'utilisateur passe l'option "debug" sur la ligne de commande. (fait)
 
--Revoir la partie select et les signaux avec pselect
+-Revoir la partie select et les signaux avec pselect (fait)
 
 -Organiser quelques parties du code
 
+update 30/04:
+
+Asmaa:
+
+A faire: 
+
+- Revoir la partie création du node id, le prof avait dit pendant le dernier live que node id n'est pas un entier mais une suite d'octets, donc
+on devrait pas le convertir
