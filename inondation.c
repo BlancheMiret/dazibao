@@ -1,8 +1,12 @@
 #include "inondation.h"
+#include "hash_network.h"
 
 // ----------------------------------------------------------------------------
 // ------------------------------ FREE TLV LIST -------------------------------
 
+/*
+Libère la mémoire de chaque noeud d'une liste chaînée de tlv.
+*/
 void free_tlv_list(struct tlv_t *tlv_list) {
 	struct tlv_t *node = tlv_list;
 	struct tlv_t *temp;
@@ -18,6 +22,11 @@ void free_tlv_list(struct tlv_t *tlv_list) {
 // ----------------------------------------------------------------------------
 // ------------------------------ PRINT RESPONSE ------------------------------
 
+/*
+Prend des paramètres réseau, un nombre de tlv et une liste chaînée de tlv.
+Envoie la liste chaînée de tlv.
+Affiche un message de confirmation d'envoi.
+*/
 int send_tlv_list(int sockfd, struct sockaddr_in6 *from, size_t size_from, int nb_tlv, struct tlv_t *tlv_list) {
 	int size_dtg;
 	char *dtg_char = build_tlvs_to_char2(&size_dtg, nb_tlv, tlv_list);
@@ -47,6 +56,9 @@ int send_tlv_list(int sockfd, struct sockaddr_in6 *from, size_t size_from, int n
 // ----------------------------------------------------------------------------
 // ----------------------- RESPOND TO NEIGHBOUR REQUEST -----------------------
 
+/*
+Renvoie un tlv neighbour contenant les informations d'un voisin choisi au hasard dans la table des voisins.
+*/
 void *respond_to_neighbour_req(struct pstate_t *peer_state) {
 	// tire au hasard entrée table des voisins
 	struct neighbour *n = pick_neighbour(peer_state->neighbour_table); // <--- fonction à modifier, renvoie int !!
@@ -62,6 +74,9 @@ void *respond_to_neighbour_req(struct pstate_t *peer_state) {
 // ----------------------------------------------------------------------------
 // --------------------------- RESPOND TO NEIGHBOUR ---------------------------
 
+/*
+Renvoie un network hash contenant le network hash calculé par le pair.
+*/
 void *respond_to_neighbour(struct pstate_t *peer_state) {
 	return new_network_hash(peer_state->network_hash);
 }
@@ -70,21 +85,23 @@ void *respond_to_neighbour(struct pstate_t *peer_state) {
 // ----------------------------------------------------------------------------
 // ------------------------- RESPOND TO NETWORK HASH --------------------------
 
-// UN SEUL TLV DE RÉPONSE
-
+/*
+Prend un tlv network_hash et l'état du réseau vu par le pair.
+Si le hash du réseau du network hash est le même que celui calculé par le pair, rien ne se passe.
+Sinon, renvoie un tlv network state request.
+*/
 void *respond_to_network_hash(struct tlv_t *tlv, struct pstate_t *peer_state) {
 	if (tlv->type != 4) {
 		printf("Shouldn't be in respond_to_network_hash function.\n");
 		return NULL;
 	}
 
-	// Si hash du réseau identique , rien à faire, sinon envoyer TLV NETWORK STATE REQUEST
 	char received_hash[16];
 	memcpy(received_hash, tlv->body.nethash_body->network_hash, 16);
 	char known_hash[16];
 	memcpy(known_hash, peer_state->network_hash, 16);
 
-	if (compare_2_hash(received_hash, known_hash)) return NULL; // fonction dans module hash
+	if (compare_2_hash(received_hash, known_hash)) return NULL; // <--fonction dans module hash
 
 	return new_network_state_request();
 }
@@ -93,18 +110,17 @@ void *respond_to_network_hash(struct tlv_t *tlv, struct pstate_t *peer_state) {
 // ----------------------------------------------------------------------------
 // --------------------- RESPOND TO NETWORK STATE REQUEST ---------------------
 
-// MILLE TLV EN RÉPONSE, SE DÉBROUILLE
-
-
 // ON SAIT QU'UN NODE HASH MESURE 28 OCTETS 
 // ATTENTION À NE PAS EN METTRE TROP DANS UN DATAGRAMME !!!
 // AU MAX : 1024 - 4 (DTG HEADER) = 1000 / 28 = 35 
 // On ne va pas ajouter manuellement les 35 tlv dans la fonction build_char_to_tlvs...
 // --> solution : nouvelle fonction build_tlvs_to_char2 qui prend une liste chainée de tlv plutôt que chaque tlv en argument
 
+/*
+Prend des paramètres réseau et l'état du réseau vu par le pair.
+Envoie un node state par donnée stockée dans la table des données.
+*/
 int respond_to_network_state_req(int sockfd, struct sockaddr_in6 *from, size_t size_from, struct pstate_t *peer_state) {
-	// Réponse = Envoyer une série de Node Hash, un pour chaque donnée connue.
-
 	// Créer une liste chainée de tlv's (max 35 à la suite)
 	struct tlv_t *tlv_list = NULL;
 	struct tlv_t **pointer = &tlv_list; // <-- le pointeur qui va se "balader de next en next" sur la liste chaînée
@@ -140,9 +156,11 @@ int respond_to_network_state_req(int sockfd, struct sockaddr_in6 *from, size_t s
 // ----------------------------------------------------------------------------
 // --------------------------- RESPOND TO NODE HASH ---------------------------
 
-// consulte table de données
-// s'il n'a pas d'entrée pour l'id, ou que les hash sont différérents : envoyer node state request
-// sinon, hash égaux : ne rien faire
+/* 
+Prend un tlv node hash et l'état du réseau vu par le pair.
+S'il n'a pas d'entrée pour le node_id du tlv node hash dans la table des données, 
+ou que les hash sont différents : renvoie un node state request.
+*/
 void *respond_to_node_hash(struct tlv_t *tlv, struct pstate_t *peer_state) {
 	if (tlv->type != 6) {
 		printf("Shouldn't be in respond_to_ node_hash function.\n");
@@ -159,8 +177,9 @@ void *respond_to_node_hash(struct tlv_t *tlv, struct pstate_t *peer_state) {
 // ----------------------------------------------------------------------------
 // ----------------------- RESPOND TO NODE STATE REQUEST ----------------------
 
-// UN SEUL TLV EN RÉPONSE
-
+/*
+Retourne un tlv node state.
+*/
 void *respond_to_node_state_request(struct tlv_t *tlv, struct pstate_t *peer_state) {
 	if (tlv->type != 7) {
 		printf("Shouldn't be in respond_to_node_state_request function.\n");
@@ -176,11 +195,15 @@ void *respond_to_node_state_request(struct tlv_t *tlv, struct pstate_t *peer_sta
 	return new_node_state(tlv->body.nodestatereq_body->node_id, value->seq_no, value->node_hash, value->data);
 }
 
+
 // ----------------------------------------------------------------------------
 // --------------------------- RESPOND TO NODE STATE --------------------------
 
-// PAS DE RÉPONSE DE TLV, SEULEMENT ADD DATA
-
+/*
+Prend un tlv_node_state et l'état du réseau vu par le pair.
+Si le hash du réseau du node_state et celui enregistré par le pair sont les mêmes, la fonction termine.
+Sinon, compare les numéros de séquences, si besoin ajoute ou met à jour la donnée et recalcule le network_hash.
+*/
 int respond_to_node_state(struct tlv_t *tlv, struct pstate_t *peer_state) {
 	if (tlv->type != 7) {
 		printf("Shouldn't be in respond_to_node_state function.\n");
@@ -203,10 +226,12 @@ int respond_to_node_state(struct tlv_t *tlv, struct pstate_t *peer_state) {
 	if(value == NULL || !(is_greater_than(ntohs(value->seq_no), ntohs(neigh_seq_no)))) { // 
 		// stocker donnée (avec données node state) dans table des données
 		add_data(peer_state->data_table, neigh_node_id, neigh_seq_no, tlv->body.nodestate_body->data);
+
+		// ATTENTION LA VISION DU RÉSEAU A CHANGÉ : RECALCULER LE HASH RÉSEAU
+		hash_network(peer_state->data_table, peer_state->network_hash); //<-- met à jour directement dans peer_state. Attention fonction non testée.
 	}
 
-	// Si numéro de séquence supérieur chez nous : ne rien faire
-
+	// Si numéro de séquence supérieur chez le pair : ne rien faire
 	return 0;
 }
 
@@ -214,7 +239,11 @@ int respond_to_node_state(struct tlv_t *tlv, struct pstate_t *peer_state) {
 // ----------------------------------------------------------------------------
 // ------------------------------- RESPOND TO TLV -----------------------------
 
-
+/*
+Prend un tlv auquel il faut répondre, des paramètres réseau, l'état du réseau vu par le pair.
+Selon le type de tlv, appelle la fonction necessaire.
+Renvoie un pointeur vers un tlv-réponse, ou NULL (en cas d'erreur ou fonctionnement particulier de fonction - cas 5 6 8)
+*/
 void *respond_to_tlv(struct tlv_t *tlv, int sockfd, struct sockaddr_in6 *from, size_t size_from, struct pstate_t *peer_state) {
 	struct tlv *response_tlv = NULL;
 	switch(tlv->type) {
@@ -270,13 +299,13 @@ void *respond_to_tlv(struct tlv_t *tlv, int sockfd, struct sockaddr_in6 *from, s
 // ----------------------------------------------------------------------------
 // ------------------------------- RESPOND TO DTG -----------------------------
 
-// IDÉE POUR ÉCONOMISER LES SEND TO :
-// STOCKER DANS UNE LISTE CHAINÉE (EN VÉRIFIANT QUE TAILLE DÉPASSE PAS 1020 OCTESTS)
-// QUAND LISTE EST PLEINE : SEND TO
-// LIBÉRER LA LISTE CHAINÉE
-// RECOMMENCER S'IL RESTE DES TLVs
-
-
+/*
+Prend une structure dtg construite par la fonction unpack_dtg, 
+les paramètres réseaux nécessaires à l'envoi des réponses, 
+et la structure peer_state représentant le point de vue de mon pair sur le réseau.
+Parcourt un à un les tlv présents dans la liste du datagramme reçu et construit un tlv-réponse pour chacun (sauf comportement spécial selon type de tlv)
+Accumule les tlv-réponses dans une liste chaînée de tlv, quand cette liste chaînée est pleine elle est envoyée.
+*/
 void respond_to_dtg (struct dtg_t *dtg, int sockfd, struct sockaddr_in6 *from, size_t size_from, struct pstate_t *peer_state) {
 	struct tlv_t *tlv = dtg->tlv_list; // <-- pointeur qui parcourt la liste de tlvs REÇUS
 	struct tlv_t *response_tlv_list = NULL; // <-- liste chainée des tlvs À ENVOYER
@@ -309,4 +338,3 @@ void respond_to_dtg (struct dtg_t *dtg, int sockfd, struct sockaddr_in6 *from, s
 		tlv = tlv->next;
 	}
 }
-
