@@ -202,6 +202,20 @@ void *write_tlv(struct tlv_t *tlv, char *addr) {
 	return addr;
 }
 
+
+void *init_dtg(size_t size_dtg) {
+	char *dtg = malloc(size_dtg);
+	memset(dtg, 0, size_dtg);
+	uint8_t magic = 0x5F;
+    uint8_t ver = 0x1;
+    uint16_t length = htons(size_dtg - DTG_HEADER);
+    memcpy(dtg, &magic, 1);
+    memcpy(dtg+1, &ver, 1);
+    memcpy(dtg+2, &length, 2);
+    return dtg;
+}
+
+
 // prend suite de tlv et en fait un datagramme prêt à envoyer sur le réseau
 void *build_tlvs_to_char(int *size_dtg, int nbtlv, ...) { // <----- free les tlv au passage par exemple ? 
 	va_list valist;
@@ -221,15 +235,7 @@ void *build_tlvs_to_char(int *size_dtg, int nbtlv, ...) { // <----- free les tlv
 	printf("Total size should be : %d\n", *size_dtg); // <--- DEBUG
 
 	// ---- CRÉER CHAINE DE CARACTÈRE ET INITIALISER LE HEADER
-
-	char *dtg = malloc(*size_dtg);
-	memset(dtg, 0, *size_dtg);
-	uint8_t magic = 0x5F;
-    uint8_t ver = 0x1;
-    uint16_t length = htons(*size_dtg - DTG_HEADER);
-    memcpy(dtg, &magic, 1);
-    memcpy(dtg+1, &ver, 1);
-    memcpy(dtg+2, &length, 2);
+	char *dtg = init_dtg(*size_dtg);
 
     // ---- ÉCRIRE CONTENU DES TLV UN PAR UN
 
@@ -238,9 +244,38 @@ void *build_tlvs_to_char(int *size_dtg, int nbtlv, ...) { // <----- free les tlv
 
     for(int i = 0; i < nbtlv; i++) {
     	tlv = va_arg(valist, struct tlv_t *);
-    	begin_tlv = write_tlv(tlv, begin_tlv);
+    	begin_tlv = write_tlv(tlv, begin_tlv); // <-- write_tlv modifie l'adresse pointée par begin_tlv
     }
 	return dtg; 
+}
+
+
+void *build_tlvs_to_char2(int *size_dtg, int nbtlv, struct tlv_t *tlv_list) { // <-- Cf Test dans test_tlv_manager
+	struct tlv_t *tlv = tlv_list;
+	*size_dtg = 0; //sans compter le header
+
+
+	// - CALCULER TAILLE FINALE DU TAGAGRAMME ET L'ÉCRIRE À L'ADRESSE size_dtg;
+	while(tlv != NULL) {
+		if(tlv->type != 0) *size_dtg += tlv->length + TLV_HEADER;
+		else *size_dtg += 1;
+		tlv = tlv->next;
+	}
+
+	*size_dtg += DTG_HEADER;
+	printf("Total size should be : %d\n", *size_dtg); // <--- DEBUG
+
+	// ---- CRÉER CHAINE DE CARACTÈRE ET INITIALISER LE HEADER
+	char *dtg = init_dtg(*size_dtg);
+
+	// ---- ÉCRIRE CONTENU DES TLV UN PAR UN
+	char *begin_tlv = dtg + DTG_HEADER;
+	tlv = tlv_list;
+	while(tlv != NULL) {
+		begin_tlv = write_tlv(tlv, begin_tlv);
+		tlv = tlv->next;
+	}
+	return dtg;
 }
 
 // ----------------------------------------------------------------------------
@@ -383,6 +418,7 @@ void print_tlv_header(struct tlv_t *tlv) {
 }
 
 void print_tlv(struct tlv_t *tlv) {
+	if(tlv == NULL) return;
 
 	switch(tlv->type) {
 		case 0:
