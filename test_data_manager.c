@@ -75,7 +75,7 @@ int main() {
 	printf("------------- IS GREATER THAN ? -------------\n");
 	uint16_t host_seq_no1 = get_seq_no(data_table, node_id); //1 996 à ce stade
 	uint16_t host_seq_no2 = get_seq_no(data_table, new_node_id); //15 880
-	if(is_greather_than(host_seq_no2, host_seq_no1)) printf("Expected result.\n");
+	if(is_greater_than(host_seq_no2, host_seq_no1)) printf("Expected result.\n");
 	else printf("Something's wrong.\n");
 	printf("\n");
 
