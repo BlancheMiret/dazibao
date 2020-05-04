@@ -62,11 +62,29 @@ int main() {
 	int size_dtg;
 	char *dtg_char = build_tlvs_to_char(&size_dtg, 10, tlv, tlv1, tlv2, tlv3, tlv4, tlv5, tlv6, tlv7, tlv8, tlv9);
 
+	printf("---- DEBUG BUILD TLVS TO CHAR 2 ----\n");
+	// Construire la liste chaînée
+	tlv->next = tlv1;
+	tlv1->next = tlv2;
+	tlv2->next = tlv3;
+	tlv3->next = tlv4;
+	tlv4->next = tlv5;
+	tlv5->next = tlv6;
+	tlv6->next = tlv7;
+	tlv7->next = tlv8;
+	tlv8->next = tlv9;
+	tlv9->next = NULL;
+	int size_dtg2;
+	char *dtg_char2 = build_tlvs_to_char2(&size_dtg2, 10, tlv);
 
 	printf("--------- DEBUG UNPACK TLV ---------\n");
 
 	struct dtg_t *dtg = unpack_dtg(dtg_char, size_dtg);
 	print_dtg(dtg);
+
+	printf("-------- DEBUG UNPACK TLV 2 --------\n");
+	struct dtg_t *dtg2 = unpack_dtg(dtg_char2, size_dtg2);
+	print_dtg(dtg2);
 
 
 }
