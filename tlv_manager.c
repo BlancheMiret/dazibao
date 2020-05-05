@@ -336,6 +336,7 @@ void unpack_next_tlv(char *from, struct tlv_t *tlv) {
 			break;
 
 		default :
+			printf("Type TLV : %d\n", tlv->type);
 			printf("Wrong type of tlv in unpack_next_tlv\n");
 			exit(1);
 	}
