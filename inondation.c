@@ -102,7 +102,6 @@ void *build_res_network_hash(struct tlv_t *tlv, struct pstate_t *peer_state) {
 	memcpy(known_hash, peer_state->network_hash, 16);
 
 	if (compare_2_hash(received_hash, known_hash)) return NULL; // <--fonction dans module hash
-
 	return new_network_state_request();
 }
 
@@ -205,7 +204,7 @@ Si le hash du réseau du node_state et celui enregistré par le pair sont les m�
 Sinon, compare les numéros de séquences, si besoin ajoute ou met à jour la donnée et recalcule le network_hash.
 */
 int respond_to_node_state(struct tlv_t *tlv, struct pstate_t *peer_state) {
-	if (tlv->type != 7) {
+	if (tlv->type != 8) {
 		printf("Shouldn't be in respond_to_node_state function.\n");
 		return -1;
 	}
@@ -245,7 +244,7 @@ Selon le type de tlv, appelle la fonction necessaire.
 Renvoie un pointeur vers un tlv-réponse, ou NULL (en cas d'erreur ou fonctionnement particulier de fonction - cas 5 6 8)
 */
 void *respond_to_tlv(struct tlv_t *tlv, int sockfd, struct sockaddr_in6 *from, size_t size_from, struct pstate_t *peer_state) {
-	struct tlv *response_tlv = NULL;
+	struct tlv_t *response_tlv = NULL;
 	switch(tlv->type) {
 		case 0:
 			// if (debug)
@@ -307,6 +306,7 @@ Parcourt un à un les tlv présents dans la liste du datagramme reçu et constru
 Accumule les tlv-réponses dans une liste chaînée de tlv, quand cette liste chaînée est pleine elle est envoyée.
 */
 void respond_to_dtg (struct dtg_t *dtg, int sockfd, struct sockaddr_in6 *from, size_t size_from, struct pstate_t *peer_state) {
+
 	struct tlv_t *tlv = dtg->tlv_list; // <-- pointeur qui parcourt la liste de tlvs REÇUS
 	struct tlv_t *response_tlv_list = NULL; // <-- liste chainée des tlvs À ENVOYER
 	struct tlv_t *response_tlv; // <-- variable reçevant les tlv de réponses des différentes fonctions
@@ -317,11 +317,21 @@ void respond_to_dtg (struct dtg_t *dtg, int sockfd, struct sockaddr_in6 *from, s
 	while(tlv != NULL) {
 		response_tlv = respond_to_tlv(tlv, sockfd, from, size_from, peer_state);
 
-		if(response_tlv == NULL) continue;
+		if(response_tlv == NULL) {
+			tlv = tlv->next;
+			continue;
+		}
 
 		if (size_tlv_list + response_tlv->length + TLV_HEADER > 1020) { // Si il n'y a pas assez de place pour ce nouveau tlv, procéder à l'envoi
+			struct tlv_t *test = response_tlv_list; // <----- DEBUG
+			printf("SENDING LIST OF TLV : \n");
+			while(test != NULL) {
+				printf("Tlv type = %d\n", test->type);
+				test = test->next;
+			}
 
 			send_tlv_list(sockfd, from, size_from, tlv_count, response_tlv_list);
+			response_tlv_list = NULL; // <--- ATTENTION À FREE LA TLV LIST !! (fait dans send_tlv_list)
 			pointer = &response_tlv_list;
 			*pointer = response_tlv;
 			size_tlv_list = (*pointer)->length + TLV_HEADER;
@@ -336,5 +346,17 @@ void respond_to_dtg (struct dtg_t *dtg, int sockfd, struct sockaddr_in6 *from, s
 
 		pointer = &((*pointer)->next); // <-- déplacer le curseur dans la liste chaînée
 		tlv = tlv->next;
+	}
+
+	if (response_tlv_list != NULL) {
+		struct tlv_t *test = response_tlv_list; // <----- DEBUG
+		printf("SENDING LIST OF TLV : \n");
+		while(test != NULL) {
+			printf("Tlv type = %d\n", test->type);
+			test = test->next;
+		}
+
+		send_tlv_list(sockfd, from, size_from, tlv_count, response_tlv_list);
+
 	}
 }
