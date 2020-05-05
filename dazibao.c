@@ -85,7 +85,7 @@ int main (void) {
 	(((uint64_t) rand() << 48) & 0xFFFF000000000000ull);
 	printf("node_id %" PRIu64"\n", node_id) ;
 
-
+	/*
 	// -- CALCUL HASH -- 
 	int TRIPLETSIZE = sizeof(uint64_t) + sizeof(uint16_t) + strlen(data);
 	char triplet[TRIPLETSIZE]; 
@@ -95,6 +95,10 @@ int main (void) {
 	unsigned char *res = SHA256((const unsigned char*)triplet, TRIPLETSIZE, 0);
 	char node_hash[16];
 	memcpy(node_hash, res, 16);
+	*/
+	char node_hash[16];
+	hash_node(node_id, new_sequence, data, node_hash);
+
 
 
 	// -- CONSTRUCTION D'UN DATAGRAM -- 
