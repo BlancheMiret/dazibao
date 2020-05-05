@@ -292,7 +292,7 @@ int main (void) {
 					/* TEST NOUVEAU MODULE
 					print_datagram(recvMsg) ;*/
 
-					struct dtg_t *dtg = unpack_dtg(recvMsg, from_len);
+					struct dtg_t *dtg = unpack_dtg(recvMsg, rc);
 					print_dtg(dtg);
 
 					respond_to_dtg(dtg, sockfd, &from, from_len, peer_state); // <---- INONDATION 
@@ -306,8 +306,10 @@ int main (void) {
 					if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) == 15){
 						printf("IMPOSSIBLE D'AJOUTER");
 					}
+					printf("A\n");
 
 					if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) < 15){
+						printf("B\n");
 						//ajout d'un voisin permanent
 						if(compare_addr(&addr6->sin6_addr, &from.sin6_addr) == 0){
 							add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from, 1);
