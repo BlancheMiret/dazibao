@@ -91,6 +91,7 @@ void display_data_table(GHashTable *data_table) {
 //		Attention, si table de données ne contient pas d'entrée de clé node_id (donc lookup renvoie null) renvoie Faux, on s'en fout de savoir qu'on l'a pas
 int compare_hash(GHashTable *data_table, uint64_t node_id, char node_hash_to_compare[16]) {
 	struct data_t *value = g_hash_table_lookup(data_table, &node_id);
+	if (value == NULL) return 0;
 	for(int i = 0; i < 16; i++) {
 		if (node_hash_to_compare[i] != value->node_hash[i]) return 0;
 	}
@@ -106,7 +107,7 @@ uint16_t get_seq_no(GHashTable *data_table, uint64_t node_id) {
 
 
 //Renvoie TRUE si seq_no1 >> seq_no2, FALSE sinon
-int is_greather_than(uint16_t seq_no1, uint16_t seq_no2) { // <-- EN PARAMÈTRES: ORDRE HOST !!
+int is_greater_than(uint16_t seq_no1, uint16_t seq_no2) { // <-- EN PARAMÈTRES: ORDRE HOST !!
 	//seq_no2 << seq_no1 ??
 	return ((seq_no1 - seq_no2)%TWOPOWSIXTEEN) < 32768;
 

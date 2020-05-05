@@ -46,7 +46,7 @@ int add_data(GHashTable *data_table, uint64_t node_id, uint16_t seq_no, char dat
 void print_data(GHashTable *data_table, uint64_t node_id);
 int compare_hash(GHashTable *data_table, uint64_t node_id, char node_hash_to_compare[16]);
 uint16_t get_seq_no(GHashTable *data_table, uint64_t node_id);
-int is_greather_than(uint16_t seq_no1, uint16_t seq_no2);
+int is_greater_than(uint16_t seq_no1, uint16_t seq_no2);
 int update_self_seq_num(GHashTable *data_table, uint64_t self_id);
 int data_exists(GHashTable *data_table, uint64_t node_id);
 void display_data_table(GHashTable *data_table);

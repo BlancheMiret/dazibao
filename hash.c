@@ -1,5 +1,12 @@
 #include "hash.h"
 
+int compare_2_hash(char hash1[16], char hash2[16]) {
+	for(int i = 0; i < 16; i++) {
+		if (hash1[i] != hash2[i]) return 0;
+	}
+	return 1;
+}
+
 void print_hash(char *hash) {
     for (int i = 0; i < 16; i++) {
         printf("%02x", hash[i]);

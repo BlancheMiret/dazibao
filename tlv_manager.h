@@ -94,6 +94,8 @@ void print_dtg(struct dtg_t *dtg);
 // Prend un nombre illimité de tlv et renvoie un pointeur de datagramme tout prêt à envoyer sur le réseau
 // size_dtg est mis à jour pour correspondre à la taille du datagramme
 void *build_tlvs_to_char(int *size_dtg, int nbtlv, ...);
+// Même chose, en prenant une liste chaînée de tlv's
+void *build_tlvs_to_char2(int *size_dtg, int nbtlv, struct tlv_t *tlv_list);
 
 // Fonction à utiliser à la reception d'un datagramme :
 // Renvoie un pointeur vers un struct dtg_t qui contient une liste chaînée de tlv.
