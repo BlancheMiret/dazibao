@@ -59,7 +59,7 @@ int send_tlv_list(int sockfd, struct sockaddr_in6 *from, size_t size_from, int n
 /*
 Renvoie un tlv neighbour contenant les informations d'un voisin choisi au hasard dans la table des voisins.
 */
-void *respond_to_neighbour_req(struct pstate_t *peer_state) {
+void *build_res_neighbour_req(struct pstate_t *peer_state) {
 	// tire au hasard entrée table des voisins
 	struct neighbour *n = pick_neighbour(peer_state->neighbour_table); // <--- fonction à modifier, renvoie int !!
 	
@@ -77,7 +77,7 @@ void *respond_to_neighbour_req(struct pstate_t *peer_state) {
 /*
 Renvoie un network hash contenant le network hash calculé par le pair.
 */
-void *respond_to_neighbour(struct pstate_t *peer_state) {
+void *build_res_neighbour(struct pstate_t *peer_state) {
 	return new_network_hash(peer_state->network_hash);
 }
 
@@ -90,7 +90,7 @@ Prend un tlv network_hash et l'état du réseau vu par le pair.
 Si le hash du réseau du network hash est le même que celui calculé par le pair, rien ne se passe.
 Sinon, renvoie un tlv network state request.
 */
-void *respond_to_network_hash(struct tlv_t *tlv, struct pstate_t *peer_state) {
+void *build_res_network_hash(struct tlv_t *tlv, struct pstate_t *peer_state) {
 	if (tlv->type != 4) {
 		printf("Shouldn't be in respond_to_network_hash function.\n");
 		return NULL;
@@ -161,7 +161,7 @@ Prend un tlv node hash et l'état du réseau vu par le pair.
 S'il n'a pas d'entrée pour le node_id du tlv node hash dans la table des données, 
 ou que les hash sont différents : renvoie un node state request.
 */
-void *respond_to_node_hash(struct tlv_t *tlv, struct pstate_t *peer_state) {
+void *build_res_node_hash(struct tlv_t *tlv, struct pstate_t *peer_state) {
 	if (tlv->type != 6) {
 		printf("Shouldn't be in respond_to_ node_hash function.\n");
 		return NULL;
@@ -180,7 +180,7 @@ void *respond_to_node_hash(struct tlv_t *tlv, struct pstate_t *peer_state) {
 /*
 Retourne un tlv node state.
 */
-void *respond_to_node_state_request(struct tlv_t *tlv, struct pstate_t *peer_state) {
+void *build_res_node_state_request(struct tlv_t *tlv, struct pstate_t *peer_state) {
 	if (tlv->type != 7) {
 		printf("Shouldn't be in respond_to_node_state_request function.\n");
 		return NULL;
@@ -258,15 +258,15 @@ void *respond_to_tlv(struct tlv_t *tlv, int sockfd, struct sockaddr_in6 *from, s
 			break;
 
 		case 2: // Neighbour request : 
-			response_tlv = respond_to_neighbour_req(peer_state); // <- récupère un tlv_neighbour
+			response_tlv = build_res_neighbour_req(peer_state); // <- récupère un tlv_neighbour
 			break;
 
 		case 3: // Neigbhour
-			response_tlv = respond_to_neighbour(peer_state); // <- récupère network hash
+			response_tlv = build_res_neighbour(peer_state); // <- récupère network hash
 			break;
 
 		case 4: // Network Hash
-			response_tlv = respond_to_network_hash(tlv, peer_state);  // <- récupère tlv network state request ou NULL
+			response_tlv = build_res_network_hash(tlv, peer_state);  // <- récupère tlv network state request ou NULL
 			break;
 
 		case 5: // Network State Request
@@ -274,11 +274,11 @@ void *respond_to_tlv(struct tlv_t *tlv, int sockfd, struct sockaddr_in6 *from, s
 			break;
 
 		case 6: // Node Hash
-			response_tlv = respond_to_node_hash(tlv, peer_state); // <- récupère Node State Request ou NULL
+			response_tlv = build_res_node_hash(tlv, peer_state); // <- récupère Node State Request ou NULL
 			break;
 
 		case 7: // Node State Request
-			response_tlv = respond_to_node_state_request(tlv, peer_state); //<- récupère Node State ou Null (si erreur)
+			response_tlv = build_res_node_state_request(tlv, peer_state); //<- récupère Node State ou Null (si erreur)
 			break;
 
 		case 8: //Node State
