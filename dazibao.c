@@ -74,16 +74,19 @@ int main (void) {
 	memset(peer_state, 0, sizeof(struct pstate_t));
 	// DATA ET NUMÉRO DE SÉQUENCE 
 	data = "J'ai passé une excellente soirée mais ce n'était pas celle-ci.";
-	new_sequence = htons(0x3E08); // 0x3D = 61 --- 0x3E08 = 15880 
+	memcpy(peer_state->data, data, strlen(data));
+	peer_state->num_seq = htons(0x3E08); // 0x3D = 61 --- 0x3E08 = 15880 
+	
+	//new_sequence = htons(0x3E08); // 0x3D = 61 --- 0x3E08 = 15880;
 
 
 	// -- ID DE NOTRE NOEUD -- 
-	node_id =
+	peer_state->node_id =
 	(((uint64_t) rand() <<  0) & 0x000000000000FFFFull) | 
 	(((uint64_t) rand() << 16) & 0x00000000FFFF0000ull) | 
 	(((uint64_t) rand() << 32) & 0x0000FFFF00000000ull) |
 	(((uint64_t) rand() << 48) & 0xFFFF000000000000ull);
-	printf("node_id %" PRIu64"\n", node_id) ;
+	printf("node_id %" PRIu64"\n", peer_state->node_id) ;
 
 	/*
 	// -- CALCUL HASH -- 
@@ -97,12 +100,12 @@ int main (void) {
 	memcpy(node_hash, res, 16);
 	*/
 	char node_hash[16];
-	hash_node(node_id, new_sequence, data, node_hash);
+	hash_node(peer_state->node_id, peer_state->num_seq, peer_state->data, node_hash);
 
 
 
 	// -- CONSTRUCTION D'UN DATAGRAM -- 
-	struct tlv_t *node_state = new_node_state(node_id, new_sequence, node_hash, data);
+	struct tlv_t *node_state = new_node_state(peer_state->node_id, peer_state->num_seq, node_hash, peer_state->data);
 	int datagram_length;
 	char *datagram = build_tlvs_to_char(&datagram_length, 1, node_state);
 
