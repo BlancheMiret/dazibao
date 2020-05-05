@@ -70,15 +70,14 @@ int main (void) {
 	//Alarme qui se déclenche 
 	alarm(20); 
 
+	// ----- INITIALISATION DONNÉES -----
+
 	struct pstate_t *peer_state = malloc(sizeof(struct pstate_t));
 	memset(peer_state, 0, sizeof(struct pstate_t));
 	// DATA ET NUMÉRO DE SÉQUENCE 
 	data = "J'ai passé une excellente soirée mais ce n'était pas celle-ci.";
 	memcpy(peer_state->data, data, strlen(data));
 	peer_state->num_seq = htons(0x3E08); // 0x3D = 61 --- 0x3E08 = 15880 
-	
-	//new_sequence = htons(0x3E08); // 0x3D = 61 --- 0x3E08 = 15880;
-
 
 	// -- ID DE NOTRE NOEUD -- 
 	peer_state->node_id =
@@ -88,20 +87,14 @@ int main (void) {
 	(((uint64_t) rand() << 48) & 0xFFFF000000000000ull);
 	printf("node_id %" PRIu64"\n", peer_state->node_id) ;
 
-	/*
-	// -- CALCUL HASH -- 
-	int TRIPLETSIZE = sizeof(uint64_t) + sizeof(uint16_t) + strlen(data);
-	char triplet[TRIPLETSIZE]; 
-	memcpy(triplet, &node_id, 8);
-	memcpy(triplet+8, &new_sequence, 2); //selon le sujet page 2, si doit bien être en big-endian dans le hash
-	memcpy(triplet+10, data, strlen(data));
-	unsigned char *res = SHA256((const unsigned char*)triplet, TRIPLETSIZE, 0);
-	char node_hash[16];
-	memcpy(node_hash, res, 16);
-	*/
 	char node_hash[16];
 	hash_node(peer_state->node_id, peer_state->num_seq, peer_state->data, node_hash);
+	print_hash(node_hash);
 
+	peer_state->data_table = create_data_table();
+	add_data(peer_state->data_table, peer_state->node_id, peer_state->num_seq, peer_state->data);
+
+	// ----------------------------------
 
 
 	// -- CONSTRUCTION D'UN DATAGRAM -- 
@@ -301,6 +294,8 @@ int main (void) {
 
 					struct dtg_t *dtg = unpack_dtg(recvMsg, from_len);
 					print_dtg(dtg);
+
+					respond_to_dtg(dtg, sockfd, &from, from_len, peer_state); // <---- INONDATION 
 
 					char IP[INET6_ADDRSTRLEN];
 					inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&from)->sin6_addr), IP, INET6_ADDRSTRLEN);
