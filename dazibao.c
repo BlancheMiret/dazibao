@@ -24,6 +24,8 @@
 #include "data_manager.h"
 #include "new_neighbour.h" // <--- ATTENTION NOUVEAU MODULE DES VOISINS
 #include "tlv_manager.h"
+#include "inondation.h"
+
 
 #define SIZE 1024
 
@@ -39,17 +41,6 @@ void print_hexa(char hash[16]) {
 }
 
 GHashTable *table_voisins;
-
-struct pstate_t {
-	uint64_t            node_id; // <-- quand même besoin de savoir quel est notre propre noeud au moment de la réponse à un TLV Node State
-	uint16_t            num_seq; // <-- stocké en format réseau |
-	char                *data[192]; //                          | --> en fait, pas nécessaire dans le node_state, mais à ajouter dans la table des données
-	char                node_hash[16]; // <--- ne bouge pas     | 
-	char                network_hash[16]; // <---- à mettre à jour quand nécessaire
-	struct neighbour    neighbour_table[15];
-	GHashTable          *data_table; // <---- hash des noeuds à mettre à jour quand nécessaire
-};
-
 
 //variable globale pour notifier la capture d'un signal
 volatile sig_atomic_t print_flag = false;
@@ -105,19 +96,6 @@ int main (void) {
 	char node_hash[16];
 	memcpy(node_hash, res, 16);
 
-
-    /* À SUPPRIMER SI MODULE TLV_MANAGER EST OK 
-
-    //Creation de message global à envoyer
-    char *datagram = main_datagram();
-    // Création de message Node state 
-    char nodestate[SIZE];
-    //taille de node state
-    int node_state_len = Node_state(nodestate,node_id, new_sequence, node_hash, data,strlen(data));
-    //taille du datagrame final qu'on va envoyer
-    int datagram_length = set_msg_body(datagram, nodestate, node_state_len);
-
-    */
 
 	// -- CONSTRUCTION D'UN DATAGRAM -- 
 	struct tlv_t *node_state = new_node_state(node_id, new_sequence, node_hash, data);
