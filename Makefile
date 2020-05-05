@@ -9,8 +9,8 @@ all : $(EXEC)
 
 #################### LINKING
 
-tlv : dazibao.o tlv_manager.o tlv.o new_neighbour.o data_manager.o hash.o 
-	$(CC) -o tlv dazibao.o tlv_manager.o tlv.o new_neighbour.o data_manager.o hash.o $(CRYPTO) $(PKGCONFIG) -std=gnu99
+tlv : dazibao.o tlv_manager.o inondation.o tlv.o new_neighbour.o hash_network.o data_manager.o hash.o 
+	$(CC) -o tlv dazibao.o tlv_manager.o inondation.o tlv.o new_neighbour.o hash_network.o data_manager.o hash.o $(CRYPTO) $(PKGCONFIG) -std=gnu99
 
 test_neighbour : test_neighbour.o new_neighbour.o
 	$(CC) $(CFLAGS) test_neighbour.o new_neighbour.o $(PKGCONFIG) -o test_neighbour_exe
@@ -56,6 +56,9 @@ neighbour : new_neighbour.c new_neighbour.h
 
 hash_network.o : hash_network.c hash_network.h
 	$(CC) $(CFLAGS) -c hash_network.c -o hash_network.o $(PKGCONFIG)
+
+inondation.o : inondation.c inondation.h
+	$(CC) $(CFLAGS) -c inondation.c -o inondation.o $(PKGCONFIG) $(CRYPTO)
 
 cleanall:
 	rm -rf *~ $(ALL)
