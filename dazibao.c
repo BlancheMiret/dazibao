@@ -25,6 +25,7 @@
 #include "new_neighbour.h" // <--- ATTENTION NOUVEAU MODULE DES VOISINS
 #include "tlv_manager.h"
 #include "inondation.h"
+#include "peer_state.h"
 
 
 #define SIZE 1024
