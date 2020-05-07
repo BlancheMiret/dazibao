@@ -87,7 +87,8 @@ int compare_addr(struct in6_addr *IP1, struct in6_addr *IP2) {
 	return 0;
 }
 
-
+//Fonction qui vérifie les conditions d'ajout d'un voisin de la partie 4.2 avant de l'ajouter
+//Changer le nom peut-être ?
 void maintain_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 from, struct sockaddr_in6 *permanent_neighbour){
 		
 	//Cas où l'émetteur n'est pas présent et la table contient au moins 15 entrées
@@ -96,17 +97,22 @@ void maintain_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 
 	}
 	printf("A\n");
 
+	//Si on a moins de 15 voisins et find_neighbour renvoie -1 alors le voisin n'existe pas et il faut l'ajouter
 	if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) < 15){
 		printf("B\n");
 
 		//ajout d'un voisin permanent
-		if(compare_addr(&permanent_neighbour->sin6_addr, &from.sin6_addr) == 0){
+		//Remarque : on l'a déjà ajouté au début, donc cette condition est inutile
+
+		/**if(compare_addr(&permanent_neighbour->sin6_addr, &from.sin6_addr) == 0){
 			add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from, 1);
 			printf("D:105 - Voisin permanent ajouté!! \n");
-		}
+		}**/
 
 		//ajout d'un voisin transitoire
-		else{
+		//On compare l'adresse du from avec l'adresse du voisin permanent, 
+		//si elles sont différentes on ajoute le voisin transitoire
+		if(compare_addr(&permanent_neighbour->sin6_addr, &from.sin6_addr) != 0){
 			add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from, 0);
 			printf("D:111 - voisin transitoire ajouté!! \n");
 		}
@@ -228,8 +234,10 @@ int main (int argc, char * argv[]) {
         		exit(EXIT_FAILURE); 
     		} 
 
+    		//On ajoute au départ l'adresse IPV4 du voisin permanent
 			add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)addr4, 1);
 		}
+
 		if (ap->ai_addr->sa_family == AF_INET6) {
 			addr6 = (struct sockaddr_in6 *) ap->ai_addr;
 			inet_ntop(AF_INET6, &addr6->sin6_addr, ipv6, INET6_ADDRSTRLEN);
@@ -241,6 +249,7 @@ int main (int argc, char * argv[]) {
         		exit(EXIT_FAILURE); 
     		} 
 
+    		//On ajoute au départ l'adresse IPV6 du voisin permanent
 			add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)addr6, 1);
 		}
 
@@ -376,6 +385,7 @@ int main (int argc, char * argv[]) {
 					printf("***************************************************\n");
 
 					respond_to_dtg(dtg, sockfd, &from, from_len, peer_state); // <---- INONDATION 
+                    
 
 					maintain_neighbour_table(peer_state, from, addr6);
 
