@@ -9,8 +9,8 @@ all : $(EXEC)
 
 #################### LINKING
 
-tlv : dazibao.o tlv_manager.o inondation.o tlv.o new_neighbour.o hash_network.o data_manager.o hash.o 
-	$(CC) -o tlv dazibao.o tlv_manager.o inondation.o tlv.o new_neighbour.o hash_network.o data_manager.o hash.o $(CRYPTO) $(PKGCONFIG) -std=gnu99
+tlv : dazibao.o tlv_manager.o inondation.o new_neighbour.o hash_network.o data_manager.o hash.o 
+	$(CC) -o tlv dazibao.o tlv_manager.o inondation.o new_neighbour.o hash_network.o data_manager.o hash.o $(CRYPTO) $(PKGCONFIG) -std=gnu99
 
 test_neighbour : test_neighbour.o new_neighbour.o
 	$(CC) $(CFLAGS) test_neighbour.o new_neighbour.o $(PKGCONFIG) -o test_neighbour_exe
@@ -23,8 +23,8 @@ test_data_manager : test_data_manager.c data_manager.o hash.o
 
 ###################### COMPILATION OF OBJECT FILES
 
-tlv.o : tlv.c
-	$(CC) $(CFLAGS) -o tlv.o -c tlv.c $(PKGCONFIG) -std=gnu99
+#tlv.o : tlv.c
+#	$(CC) $(CFLAGS) -o tlv.o -c tlv.c $(PKGCONFIG) -std=gnu99
 
 dazibao.o : dazibao.c tlv_manager.h neighbour.h data_manager.h hash.h
 	$(CC) $(CFLAGS) -o dazibao.o -c dazibao.c $(PKGCONFIG) -std=gnu99

@@ -74,6 +74,9 @@ struct dtg_t {
 	int 			nb_tlv;
 };
 
+// Vérifie l'en-tête d'un datagramme reçu
+int check_datagram_header(char *dtg);
+
 // Fonctions de créations de TLV : renvoient un pointeur vers un struct tlv_t contenant les bons paramètres
 void *new_pad1();
 void *new_padN(int nbzeros);

@@ -15,6 +15,24 @@ Fonctions
 */
 
 // ----------------------------------------------------------------------------
+// -------------------------- CHECK DATAGRAME HEADER --------------------------
+
+int check_datagram_header(char *dtg) {
+
+	uint8_t magic;
+	memcpy(&magic, dtg, 1);
+
+	uint8_t version;
+	memcpy(&version, dtg +1, 1);
+
+	uint16_t length;
+	memcpy(&length, dtg + 2, 2);
+	length = ntohs(length);
+
+	return (magic == 95 && version == 1 && length + DTG_HEADER < SIZE);
+}
+
+// ----------------------------------------------------------------------------
 // -------------------------- FONCTIONS CREATION TLV --------------------------
 
 // Fonction interne
