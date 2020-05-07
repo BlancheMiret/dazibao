@@ -17,7 +17,7 @@ int add_neighbour(struct neighbour *neighbour_table, struct sockaddr_storage *ke
 	int i = 0;
 	while(neighbour_table[i].exists && i < NBMAX) i++;
 	if (i == NBMAX) {
-		perror("Already 15 neighbour.\n");
+		perror("N:20  - Already 15 neighbour.\n");
 		return -1;
 	}
     
@@ -35,8 +35,8 @@ int add_neighbour(struct neighbour *neighbour_table, struct sockaddr_storage *ke
 	neighbour_table[i].socket_addr = *key;
 
 	char IP2[INET6_ADDRSTRLEN];
-        inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&neighbour_table[i].socket_addr)->sin6_addr), IP2, INET6_ADDRSTRLEN);
-        printf("(from add neighbour ) THE IP ADDRESS IS : %s\n", IP2);
+    inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&neighbour_table[i].socket_addr)->sin6_addr), IP2, INET6_ADDRSTRLEN);
+    printf("N:39  - Voisin ajouté. IP : %s\n", IP2);
 
 	return 0;
 }
@@ -62,9 +62,8 @@ int struct_addr_equals(struct sockaddr_storage *x, struct sockaddr_storage *y) {
 			char IP2[INET6_ADDRSTRLEN];
             inet_ntop(AF_INET6, &(x6->sin6_addr), IP1, INET6_ADDRSTRLEN);
             inet_ntop(AF_INET6, &(y6->sin6_addr), IP2, INET6_ADDRSTRLEN);
-            printf("(IP from sockaddr_in6 *x6 ) THE IP ADDRESS IS : %s\n", IP1);
-            printf("(IP from sockaddr_in6 *y6 ) THE IP ADDRESS IS : %s\n", IP2);
-			
+            //printf("(IP from sockaddr_in6 *x6 ) THE IP ADDRESS IS : %s\n", IP1);
+            //printf("(IP from sockaddr_in6 *y6 ) THE IP ADDRESS IS : %s\n", IP2);
 			return 0;
 		}
 		if(ntohs(x6->sin6_port) != ntohs(y6->sin6_port)) return 0;

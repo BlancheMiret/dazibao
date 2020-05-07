@@ -250,7 +250,7 @@ void *build_tlvs_to_char(int *size_dtg, int nbtlv, ...) { // <----- free les tlv
 	}
 
 	*size_dtg += DTG_HEADER;
-	printf("Total size should be : %d\n", *size_dtg); // <--- DEBUG
+	//printf("Total size should be : %d\n", *size_dtg); // <--- DEBUG
 
 	// ---- CRÉER CHAINE DE CARACTÈRE ET INITIALISER LE HEADER
 	char *dtg = init_dtg(*size_dtg);
@@ -281,7 +281,7 @@ void *build_tlvs_to_char2(int *size_dtg, int nbtlv, struct tlv_t *tlv_list) { //
 	}
 
 	*size_dtg += DTG_HEADER;
-	printf("Total size should be : %d\n", *size_dtg); // <--- DEBUG
+	//printf("Total size should be : %d\n", *size_dtg); // <--- DEBUG
 
 	// ---- CRÉER CHAINE DE CARACTÈRE ET INITIALISER LE HEADER
 	char *dtg = init_dtg(*size_dtg);
@@ -512,6 +512,73 @@ void print_tlv(struct tlv_t *tlv) {
 			exit(1);
 
 	}
+}
+
+void print_tlv_short(struct tlv_t *tlv) {
+		if(tlv == NULL) return;
+
+	switch(tlv->type) {
+		case 0:
+			printf("This is a Pad1, nothing to display.\n");
+			break;
+
+		case 1:
+			printf("PadN\n");
+			break;
+
+		case 2:
+			printf("Neigbhour Request\n");
+			break;
+
+		case 3:
+			printf("Neighbour\n");
+			break;
+
+		case 4:
+			printf("Network Hash\n");
+			break;
+			
+		case 5:
+			printf("Network State Request\n");
+			break;
+
+		case 6:
+			printf("Node Hash\n");
+			break;
+
+		case 7:
+			printf("Node State Request\n");
+			break;
+
+		case 8:
+			printf("Node State\n");
+			break;
+
+		case 9:
+			printf("Warning\n");
+			printf("Message is : %s\n", tlv->body.warning_body->message);
+			break;
+
+		default :
+			printf("This is not a TLV.\n");
+			exit(1);
+
+	}
+}
+
+void print_dtg_short(struct dtg_t *dtg) {
+	//printf("***************************************************\n");
+	printf("Magic : %"PRIu8"\n", dtg->magic);
+    printf("Version : %"PRIu8"\n", dtg->version);
+    uint16_t body_length = ntohs(dtg->body_length);
+    printf("Body_Length : %"PRIu16"\n", body_length);
+    printf("Nb tlv in dtg : %d\n", dtg->nb_tlv);
+    struct tlv_t *tlv = dtg->tlv_list;
+    for(int i = 0; i < dtg->nb_tlv; i ++) {
+    	print_tlv_short(tlv);
+    	tlv = tlv -> next; 
+    }
+    //printf("***************************************************\n");
 }
 
 void print_dtg(struct dtg_t *dtg) {

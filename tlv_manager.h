@@ -92,6 +92,9 @@ void *new_warning(char *message);
 // Fonctions d'affichage d'un tlv individuel ou d'un datagramme entier (et tous les tvl qu'il peut contenir)
 void print_tlv(struct tlv_t *tlv);
 void print_dtg(struct dtg_t *dtg);
+void print_tlv_short(struct tlv_t *tlv);
+void print_dtg_short(struct dtg_t *dtg);
+void print_IP_addr(struct in6_addr *sin6_addr);
 
 // Fonction à utiliser au moment d'envoyer un datagramme :
 // Prend un nombre illimité de tlv et renvoie un pointeur de datagramme tout prêt à envoyer sur le réseau
