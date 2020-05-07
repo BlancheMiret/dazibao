@@ -160,7 +160,7 @@ void send_network_hash(int socket, struct pstate_t * peer_state){
 				//exit(2);
 			}
 			else {
-				//printf("D:75  - TLV Neighbour Request Envoyé à l'adresse IP : %s\n", IP2);
+				printf("D:163  - TLV Network Hash envoyé");
 			}
 		}
 	}
