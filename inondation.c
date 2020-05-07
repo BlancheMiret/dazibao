@@ -214,14 +214,19 @@ int respond_to_node_state(struct tlv_t *tlv, struct pstate_t *peer_state) {
 	uint64_t neigh_node_id = tlv->body.nodestate_body->node_id;
 	uint16_t neigh_seq_no = tlv->body.nodestate_body->seq_no; 
 
+	struct data_t *value = g_hash_table_lookup(peer_state->data_table, &neigh_node_id);
+
 	// si iota = self id
 	if (neigh_node_id == peer_state->node_id) {
-		update_self_seq_num(peer_state->data_table, peer_state->node_id);
+		if (value == NULL) { // <--- Ne devrait pas l'être si iota = self id, mais sait-on jamais.
+			perror("You forgot to add yourself to your data table.\n");
+			exit(1);
+		}
+		update_self_seq_num(peer_state->data_table, peer_state->node_id, neigh_seq_no);
 		return 0;
 	}
 
 	// iota != self id
-	struct data_t *value = g_hash_table_lookup(peer_state->data_table, &neigh_node_id);
 	if(value == NULL || !(is_greater_than(ntohs(value->seq_no), ntohs(neigh_seq_no)))) { // 
 		// stocker donnée (avec données node state) dans table des données
 		add_data(peer_state->data_table, neigh_node_id, neigh_seq_no, tlv->body.nodestate_body->data);

@@ -4,7 +4,7 @@
 int main() {
 
 	char *data = "J'ai passé une excellente soirée mais ce n'était pas celle-ci.";
-	uint16_t net_seq_no = htons(0x3E08);
+	uint16_t net_seq_no = htons(0x3E08); //15880
 	uint64_t node_id =
 	(((uint64_t) rand() <<  0) & 0x000000000000FFFFull) | 
 	(((uint64_t) rand() << 16) & 0x00000000FFFF0000ull) | 
@@ -46,7 +46,8 @@ int main() {
 	printf("\n");
 
 	printf("------------- UPDATE THE VALUE ? ------------\n");
-	uint16_t new_net_seq_no = htons(0x7CB);
+	uint16_t new_net_seq_no = htons(0x7CB); //1995
+	printf("IN NETWORK ORDER, 1995 = %"PRIu16"\n", new_net_seq_no);
 	char *new_data = "Sans petit bisou les rêves sont flous.";
 	add_data(data_table, node_id, new_net_seq_no, new_data);
 	printf("Table len = %d\n", get_data_table_len(data_table));
@@ -67,7 +68,8 @@ int main() {
 	printf("\n");
 
 	printf("----------- UPDATE SELF SEQ NUM ? -----------\n");
-	update_self_seq_num(data_table, node_id);
+	uint16_t newseqno = htons(2005);
+	update_self_seq_num(data_table, node_id, newseqno);
 	printf("Table len = %d\n", get_data_table_len(data_table));
 	display_data_table(data_table);
 	printf("\n");

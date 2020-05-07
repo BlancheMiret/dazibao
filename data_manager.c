@@ -115,11 +115,11 @@ int is_greater_than(uint16_t seq_no1, uint16_t seq_no2) { // <-- EN PARAMÈTRES:
 
 
 // - update_self_seq_num(GHashTable *data_table, uint64_t self_id)
-int update_self_seq_num(GHashTable *data_table, uint64_t self_id) {
+int update_self_seq_num(GHashTable *data_table, uint64_t self_id, uint16_t new_seqno) {
 	struct data_t *value = g_hash_table_lookup(data_table, &self_id);
-	uint16_t host_seq_no = ntohs(value->seq_no);
-	host_seq_no = (host_seq_no + 1)%TWOPOWSIXTEEN;
-	value->seq_no = htons(host_seq_no); // <-- Devrait mettre à jour la valeur directement dans la hashtable du coup, à vérifier !!!!
+	new_seqno = ntohs(new_seqno);
+	new_seqno = (new_seqno + 1)%TWOPOWSIXTEEN;
+	value->seq_no = htons(new_seqno); // <-- Devrait mettre à jour la valeur directement dans la hashtable du coup, à vérifier !!!!
 	//g_hash_table_insert(data_table, &self_id, value);
 	return 0;
 }
