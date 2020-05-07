@@ -52,7 +52,29 @@ void handle_alarm(int sig) {
 }
 
 
+//Asmaa: mettre cette fonction dans innondation.c ????
+
+//Fonction qui envoie un TLV neighbour request à un voisin tiré au hasard
+void send_neighbour_req(int socket, struct pstate_t * peer_state){
+
+	struct neighbour * neighbour_choosen = pick_neighbour(peer_state->neighbour_table);
+
+	struct tlv_t *neighbour_req = new_neighbour_request();
+	int datagram_length1;
+	char *datagram1 = build_tlvs_to_char(&datagram_length1, 1, neighbour_req);
+	int status = sendto(socket, datagram1, datagram_length1, 0, (const struct sockaddr*)&neighbour_choosen->socket_addr, sizeof(struct sockaddr_in6));
+	if (status == -1) {
+		perror("sendto() error");
+		//exit(2);
+	}
+	else {
+		printf("--> TLV NEIGHBOUR REQUEST ENVOYE\n");
+
+	}
+
+}
 //Compare deux adresses ipv6, si ils sont égaux retourne 0
+
 int compare_addr(struct in6_addr *IP1, struct in6_addr *IP2) {
 	int i = 0;
 	for(i = 0; i < 16; ++i) {
@@ -63,7 +85,52 @@ int compare_addr(struct in6_addr *IP1, struct in6_addr *IP2) {
 }
 
 
-int main (void) {
+void maintain_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 from, struct sockaddr_in6 *permanent_neighbour){
+		
+	//Cas où l'émetteur n'est pas présent et la table contient au moins 15 entrées
+	if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) == 15){
+		printf("IMPOSSIBLE D'AJOUTER");
+	}
+	printf("A\n");
+
+	if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) < 15){
+		printf("B\n");
+
+		//ajout d'un voisin permanent
+		if(compare_addr(&permanent_neighbour->sin6_addr, &from.sin6_addr) == 0){
+			add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from, 1);
+			printf("voisin permanent ajouté!! \n");
+		}
+
+		//ajout d'un voisin transitoire
+		else{
+			add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from, 0);
+			printf("voisin transitoire ajouté!! \n");
+		}
+
+		struct neighbour *neighbour_table = peer_state->neighbour_table;
+
+		char IP2[INET6_ADDRSTRLEN];
+		inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&neighbour_table[0].socket_addr)->sin6_addr), IP2, INET6_ADDRSTRLEN);
+		printf("(from neighbour table) THE IP ADDRESS IS : %s\n", IP2);
+
+		//Affichage de la table de voisins :
+		display_neighbour_table(peer_state->neighbour_table);
+		printf("NOMBRES DE VOISINS : %d\n", get_nb_neighbour(peer_state->neighbour_table));
+	}
+
+	//Si le voisin est déjà présent mettre à jour la date de dernière réception de paquet
+	if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) != -1 ){
+
+		//A VERIFIER
+		update_last_reception(peer_state->neighbour_table, (struct sockaddr_storage*)&from);
+	}
+
+}
+
+
+
+int main (int argc, char * argv[]) {
 
 	//SIGALRM: ce signal survient lorsqu’une alarme définie par la fonction alarm(..) a expiré
 	signal( SIGALRM, handle_alarm ); 
@@ -74,12 +141,15 @@ int main (void) {
 
 	struct pstate_t *peer_state = malloc(sizeof(struct pstate_t));
 	memset(peer_state, 0, sizeof(struct pstate_t));
+
 	// DATA ET NUMÉRO DE SÉQUENCE 
 	data = "J'ai passé une excellente soirée mais ce n'était pas celle-ci.";
 	memcpy(peer_state->data, data, strlen(data));
 	peer_state->num_seq = htons(0x3E08); // 0x3D = 61 --- 0x3E08 = 15880 
 
 	// -- ID DE NOTRE NOEUD -- 
+
+	//Asmaa: Il faut qu'on change le type du noeud en unsigned char ou convertir uint64_t avant d'envoyer car c'est un entier
 	peer_state->node_id =
 	(((uint64_t) rand() <<  0) & 0x000000000000FFFFull) | 
 	(((uint64_t) rand() << 16) & 0x00000000FFFF0000ull) | 
@@ -105,8 +175,8 @@ int main (void) {
 
 	/******** paramètres réseaux ********/
 
-	char *dest_host = "jch.irif.fr";
-	char *dest_port = "1212";
+	char *dest_host = argv[1];
+	char *dest_port = argv[2];
 
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof(hints));
@@ -141,14 +211,28 @@ int main (void) {
 		if (ap->ai_addr->sa_family == AF_INET) {
 			addr4 = (struct sockaddr_in *) ap->ai_addr;
 			inet_ntop(AF_INET, &addr4->sin_addr, ipv4, INET_ADDRSTRLEN);
-			printf("IP de jch.irif.fr ---> %s\n", ipv4);
+			printf("IP du premier voisin permanent ---> %s\n", ipv4);
 			printf("*************************\n");
+
+			if (bind(sockfd, ap->ai_addr, (int)ap->ai_addrlen) < 0 ) { 
+       			perror("bind failed"); 
+        		exit(EXIT_FAILURE); 
+    		} 
+
+			add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)addr4, 1);
 		}
 		if (ap->ai_addr->sa_family == AF_INET6) {
 			addr6 = (struct sockaddr_in6 *) ap->ai_addr;
 			inet_ntop(AF_INET6, &addr6->sin6_addr, ipv6, INET6_ADDRSTRLEN);
-			printf("IP de jch.irif.fr ---> %s\n", ipv6);
+			printf("IP du premier voisin permanent ---> %s\n", ipv6);
 			printf("*************************\n");
+
+			if (bind(sockfd, ap->ai_addr, (int)ap->ai_addrlen) < 0 ) { 
+       			perror("bind failed"); 
+        		exit(EXIT_FAILURE); 
+    		} 
+
+			add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)addr6, 1);
 		}
 
 		if (sockfd != -1) break;
@@ -198,6 +282,9 @@ int main (void) {
 		//Vérifier chaque 20 secondes si un voisin transitoire n'a pas émis de paquet depuis 70s
 		if ( print_flag ) {
 
+
+            //IMPORTANT: ajouter l'envoi du TLV network hash chaque 20 s
+
 			printf("timeout !! (20 secondes) ");
 			//A VERIFIER
 			sweep_neighbour_table(peer_state->neighbour_table);
@@ -205,33 +292,12 @@ int main (void) {
 			//display_neighbour_table(peer_state->neighbour_table);
 			printf("Nombre de voisins après exécution sweep_neighbour_table: %d\n", get_nb_neighbour(peer_state->neighbour_table));
 
-			//Envoyer un TLV neighbour request, refaire cette partie en tirant au hasard une entrée de la table
-			//Tirer au hasard un index i ?
-
+			//ENVOI D'UN TLV NEIGHBOUR REQUEST
+			//Si la table contient au moins de 5 voisins,on envoie d'un TLV neighbour request à un voisin tiré au hasard 
+			
 			if(get_nb_neighbour(peer_state->neighbour_table)< 5 && get_nb_neighbour(peer_state->neighbour_table) > 0 ){
 
-				/**
-				char *datagram1 = main_datagram();
-				// Création de message Node state 
-				char neighbour_req[SIZE];
-				//taille de node state
-				int neighbour_req_len = Neighbour_request(neighbour_req);
-
-				//taille du datagrame final qu'on va envoyer
-				int datagram_length1 = set_msg_body(datagram1, neighbour_req, neighbour_req_len);
-				**/
-
-				struct neighbour * neighbour_choosen = pick_neighbour(peer_state->neighbour_table);
-
-				struct tlv_t *neighbour_req = new_neighbour_request();
-				int datagram_length1;
-				char *datagram1 = build_tlvs_to_char(&datagram_length1, 1, neighbour_req);
-				status = sendto(sockfd, datagram1, datagram_length1, 0, (const struct sockaddr*)&neighbour_choosen->socket_addr, sizeof(struct sockaddr_in6));
-				if (status == -1) {
-					perror("sendto() error");
-					//exit(2);
-				}
-				else printf("TLV NEIGHBOUR REQUEST ENVOYE");
+				 send_neighbour_req(sockfd, peer_state);
 
 			}
 
@@ -249,8 +315,7 @@ int main (void) {
 		char recvMsg[SIZE];
 		memset(recvMsg, '\0', SIZE);
 
-		// again:
-		// printf("check here for neighbours");
+	
 
 		//timeout = 20 secondes 
 		int to = 20;
@@ -289,9 +354,6 @@ int main (void) {
 				//On vérifie si l'entête est incorrecte
 				if(check_datagram_header(recvMsg) == 1) {
 
-					/* TEST NOUVEAU MODULE
-					print_datagram(recvMsg) ;*/
-
 					struct dtg_t *dtg = unpack_dtg(recvMsg, rc);
 					print_dtg(dtg);
 
@@ -301,43 +363,9 @@ int main (void) {
 					inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&from)->sin6_addr), IP, INET6_ADDRSTRLEN);
 					printf("THE IP ADDRESS IS : %s\n", IP);
 
+					maintain_neighbour_table(peer_state, from, addr6);
 
-					//Cas où l'émetteur n'est pas présent et la table contient au moins 15 entrées
-					if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) == 15){
-						printf("IMPOSSIBLE D'AJOUTER");
-					}
-					printf("A\n");
 
-					if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) < 15){
-						printf("B\n");
-						//ajout d'un voisin permanent
-						if(compare_addr(&addr6->sin6_addr, &from.sin6_addr) == 0){
-							add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from, 1);
-							printf("voisin jch.irif.fr ajouté!! \n");
-						}
-
-						//ajout d'un voisin transitoir
-						else{
-							add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from, 0);
-						}
-
-						struct neighbour *neighbour_table = peer_state->neighbour_table;
-
-						char IP2[INET6_ADDRSTRLEN];
-						inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&neighbour_table[0].socket_addr)->sin6_addr), IP2, INET6_ADDRSTRLEN);
-						printf("(from neighbour table) THE IP ADDRESS IS : %s\n", IP2);
-
-						//Affichage de la table de voisins :
-						display_neighbour_table(peer_state->neighbour_table);
-						printf("NOMBRES DE VOISINS : %d\n", get_nb_neighbour(peer_state->neighbour_table));
-					}
-
-					//Si le voisin est déjà présent mettre à jour la date de dernière réception de paquet
-					if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) != -1 ){
-
-						//A VERIFIER
-						update_last_reception(peer_state->neighbour_table, (struct sockaddr_storage*)&from);
-					}
 				}
 			}
 		}
