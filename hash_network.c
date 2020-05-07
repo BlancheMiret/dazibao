@@ -12,7 +12,7 @@ int hash_network(GHashTable *data_table, char *final_hash) {
 	g_hash_table_iter_init (&iter, data_table);
 	int i = 0;
 	while (g_hash_table_iter_next (&iter, &key, &value)) {
-		memcpy(hash_concat + i, ((struct data_t*)value)->node_hash, 16);
+		memcpy(hash_concat + i*16, ((struct data_t*)value)->node_hash, 16);
 		i++;
     }
 
