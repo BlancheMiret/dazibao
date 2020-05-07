@@ -86,19 +86,6 @@ void display_data_table(GHashTable *data_table) {
 }
 
 
-// - compare_hash(GHashTable *data_table, uint64_t node_id, char node_hash_to_compare[16]); // <-- renvoie TRUE si même hash dans table de données, sinon FALSE
-//		Doit comparer deux char[16]
-//		Attention, si table de données ne contient pas d'entrée de clé node_id (donc lookup renvoie null) renvoie Faux, on s'en fout de savoir qu'on l'a pas
-int compare_hash(GHashTable *data_table, uint64_t node_id, char node_hash_to_compare[16]) {
-	struct data_t *value = g_hash_table_lookup(data_table, &node_id);
-	if (value == NULL) return 0;
-	for(int i = 0; i < 16; i++) {
-		if (node_hash_to_compare[i] != value->node_hash[i]) return 0;
-	}
-	return 1;
-}
-
-
 uint16_t get_seq_no(GHashTable *data_table, uint64_t node_id) {
 	struct data_t *value = g_hash_table_lookup(data_table, &node_id);
 	uint16_t host_seq_no = ntohs(value->seq_no);

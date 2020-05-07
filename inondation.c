@@ -165,10 +165,15 @@ void *build_res_node_hash(struct tlv_t *tlv, struct pstate_t *peer_state) {
 		printf("Shouldn't be in respond_to_ node_hash function.\n");
 		return NULL;
 	}
+	struct data_t *value = g_hash_table_lookup(peer_state->data_table, &tlv->body.nodehash_body->node_id);
+	if(value == NULL || !compare_2_hash(tlv->body.nodehash_body->node_hash, value->node_hash)) {
+		return new_node_state_request(tlv->body.nodehash_body->node_id);
+	}
+	return NULL;
 
-	int rc = compare_hash(peer_state->data_table, tlv->body.nodehash_body->node_id, tlv->body.nodehash_body->node_hash); // <-- fonction à vérifier. Notamment : si pas d'entrée, renvoie bien 0 (faux) ?
-	if (rc) return NULL;
-	return new_node_state_request(tlv->body.nodehash_body->node_id);
+	//int rc = compare_hash(peer_state->data_table, tlv->body.nodehash_body->node_id, tlv->body.nodehash_body->node_hash); // <-- fonction à vérifier. Notamment : si pas d'entrée, renvoie bien 0 (faux) ?
+	//if (rc) return NULL;
+	//return new_node_state_request(tlv->body.nodehash_body->node_id);
 
 }
 
@@ -208,13 +213,16 @@ int respond_to_node_state(struct tlv_t *tlv, struct pstate_t *peer_state) {
 		printf("Shouldn't be in respond_to_node_state function.\n");
 		return -1;
 	}
-	int rc = compare_hash(peer_state->data_table, tlv->body.nodestate_body->node_id, tlv->body.nodestate_body->node_hash); // <-- fonction à vérifier. Notamment : si pas d'entrée, renvoie bien -1 ?
-	if (rc) return 0;
 
 	uint64_t neigh_node_id = tlv->body.nodestate_body->node_id;
 	uint16_t neigh_seq_no = tlv->body.nodestate_body->seq_no; 
 
 	struct data_t *value = g_hash_table_lookup(peer_state->data_table, &neigh_node_id);
+	//
+	//int rc = compare_hash(peer_state->data_table, tlv->body.nodestate_body->node_id, tlv->body.nodestate_body->node_hash); // <-- fonction à vérifier. Notamment : si pas d'entrée, renvoie bien -1 ?
+	//if (rc) return 0;
+
+	if(value != NULL && compare_2_hash(tlv->body.nodestate_body->node_hash, value->node_hash)) return 0;
 
 	// si iota = self id
 	if (neigh_node_id == peer_state->node_id) {

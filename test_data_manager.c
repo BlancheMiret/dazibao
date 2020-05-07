@@ -41,7 +41,10 @@ int main() {
 	printf("--------------- COMPARE HASH ? --------------\n");
 	char hash_node_to_compare[16];
 	hash_node(node_id, net_seq_no, data, hash_node_to_compare);
-	if (compare_hash(data_table, node_id2, hash_node_to_compare)) printf("Hash are equal as they should be.\n");
+
+	
+	struct data_t *value = g_hash_table_lookup(data_table, &node_id2);
+	if(compare_2_hash(hash_node_to_compare, value->node_hash)) printf("Hash are equal as they should be.\n");
 	else printf("Hash are not equal. Something's wrong.\n");
 	printf("\n");
 
@@ -56,7 +59,10 @@ int main() {
 
 	printf("--------------- COMPARE HASH ? --------------\n");
 	hash_node(node_id, new_net_seq_no, new_data, hash_node_to_compare);
-	if (compare_hash(data_table, node_id2, hash_node_to_compare)) printf("Hash are equal as they should be.\n");
+
+	
+	value = g_hash_table_lookup(data_table, &node_id2);
+	if(compare_2_hash(hash_node_to_compare, value->node_hash)) printf("Hash are equal as they should be.\n");
 	else printf("Hash are not equal. Something's wrong.\n");
 	printf("\n");
 
