@@ -23,9 +23,6 @@ test_data_manager : test_data_manager.c data_manager.o hash.o
 
 ###################### COMPILATION OF OBJECT FILES
 
-#tlv.o : tlv.c
-#	$(CC) $(CFLAGS) -o tlv.o -c tlv.c $(PKGCONFIG) -std=gnu99
-
 dazibao.o : dazibao.c tlv_manager.h neighbour.h data_manager.h hash.h
 	$(CC) $(CFLAGS) -o dazibao.o -c dazibao.c $(PKGCONFIG) -std=gnu99
 
@@ -37,10 +34,6 @@ test_tlv_manager.o : test_tlv_manager.c tlv_manager.h
 
 tlv_manager.o : tlv_manager.c tlv_manager.h hash.h
 	$(CC) $(CFLAGS) -o tlv_manager.o -c tlv_manager.c $(PKGCONFIG) -std=gnu99
-
-neighbour.o : neighbour.c neighbour.h
-	$(CC) $(CFLAGS) -o neighbour.o -c neighbour.c $(PKGCONFIG) -std=gnu99
-
 
 data_manager.o : data_manager.c data_manager.h hash.h
 	$(CC) $(CFLAGS) -c data_manager.c -o data_manager.o $(PKGCONFIG)-std=gnu99
