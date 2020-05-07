@@ -90,7 +90,8 @@ int compare_addr(struct in6_addr *IP1, struct in6_addr *IP2) {
 //Fonction qui vérifie les conditions d'ajout d'un voisin de la partie 4.2 avant de l'ajouter
 //Changer le nom peut-être ?
 void maintain_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 from, struct sockaddr_in6 *permanent_neighbour){
-		
+
+	int rc;
 	//Cas où l'émetteur n'est pas présent et la table contient au moins 15 entrées
 	if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) == 15){
 		printf("D:95  - Impossible d'ajouter le voisin (déjà 15 ?)\n");
@@ -102,7 +103,7 @@ void maintain_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 
 		printf("B\n");
 
 		//ajout d'un voisin permanent
-		//Remarque : on l'a déjà ajouté au début, donc cette condition est inutile
+		//Remarque : on l'a déjà ajouté au début (ligne 281), donc cette condition est inutile
 
 		/**if(compare_addr(&permanent_neighbour->sin6_addr, &from.sin6_addr) == 0){
 			add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from, 1);
@@ -113,15 +114,16 @@ void maintain_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 
 		//On compare l'adresse du from avec l'adresse du voisin permanent, 
 		//si elles sont différentes on ajoute le voisin transitoire
 		if(compare_addr(&permanent_neighbour->sin6_addr, &from.sin6_addr) != 0){
-			add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from, 0);
-			printf("D:111 - voisin transitoire ajouté!! \n");
+			
+			rc=add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from, 0);
+			if(rc == 0)
+			{
+				printf("D:111 - voisin transitoire ajouté!! \n");
+				char IP[INET6_ADDRSTRLEN];
+				inet_ntop(AF_INET6, &(from.sin6_addr), IP, INET6_ADDRSTRLEN);
+				printf("D:118 - L'adresse IP du voisin transitoire ajouté est : %s\n", IP);
+			}
 		}
-
-		struct neighbour *neighbour_table = peer_state->neighbour_table;
-
-		char IP2[INET6_ADDRSTRLEN];
-		inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&neighbour_table[0].socket_addr)->sin6_addr), IP2, INET6_ADDRSTRLEN);
-		printf("D:118 - L'adresse IP du voisin ajouté est : %s\n", IP2);
 
 		//Affichage de la table de voisins :
 		display_neighbour_table(peer_state->neighbour_table);
@@ -137,6 +139,34 @@ void maintain_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 
 
 }
 
+//Fonction pour l'envoi d'un TLV network hash à tous les voisins chaque 20s 
+//la mettre dans innondation.c ?
+void send_network_hash(int socket, struct pstate_t * peer_state){
+
+	struct tlv_t *network_hash=new_network_hash(peer_state->network_hash) ;
+	int datagram_length;
+	char *datagram = build_tlvs_to_char(&datagram_length, 1, network_hash);
+
+    //Parcourir la table de voisin et envoyer à chaque voisin
+
+	int count = 0;
+	int status;
+	for (int i = 0; i < NBMAX; i++) {
+		if (peer_state->neighbour_table[i].exists) {
+			count += 1;
+			status = sendto(socket, datagram, datagram_length, 0, (const struct sockaddr*)&peer_state->neighbour_table[i].socket_addr, sizeof(struct sockaddr_in6));
+			if (status == -1) {
+				perror("sendto() error");
+				//exit(2);
+			}
+			else {
+				//printf("D:75  - TLV Neighbour Request Envoyé à l'adresse IP : %s\n", IP2);
+			}
+		}
+	}
+	
+	
+}
 
 
 int main (int argc, char * argv[]) {
@@ -301,7 +331,9 @@ int main (int argc, char * argv[]) {
 		if ( print_flag ) {
 
 
-            //IMPORTANT: ajouter l'envoi du TLV network hash chaque 20 s
+			
+
+
 
 			printf("D:297 --- TIMOUT !! (20 secondes) --- \n");
 			//A VERIFIER
