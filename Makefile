@@ -23,10 +23,10 @@ test_data_manager : test_data_manager.c data_manager.o hash.o
 
 ###################### COMPILATION OF OBJECT FILES
 
-dazibao.o : dazibao.c tlv_manager.h neighbour.h data_manager.h hash.h
+dazibao.o : dazibao.c tlv_manager.h new_neighbour.h data_manager.h hash.h inondation.h peer_state.h
 	$(CC) $(CFLAGS) -o dazibao.o -c dazibao.c $(PKGCONFIG) -std=gnu99
 
-test_neighbour.o : test_neighbour.c neighbour.h
+test_neighbour.o : test_neighbour.c new_neighbour.h
 	$(CC) $(CFLAGS) -o test_neighbour.o -c test_neighbour.c $(PKGCONFIG)
 
 test_tlv_manager.o : test_tlv_manager.c tlv_manager.h
