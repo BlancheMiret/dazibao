@@ -103,7 +103,7 @@ void maintain_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 
 		printf("B\n");
 
 		//ajout d'un voisin permanent
-		//Remarque : on l'a déjà ajouté au début (ligne 281), donc cette condition est inutile
+		//Remarque : on l'a déjà ajouté au début (ligne 283), donc cette condition est inutile
 
 		/**if(compare_addr(&permanent_neighbour->sin6_addr, &from.sin6_addr) == 0){
 			add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from, 1);
