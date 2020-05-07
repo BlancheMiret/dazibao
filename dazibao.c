@@ -205,6 +205,12 @@ int main (int argc, char * argv[]) {
 	char ipv6[INET6_ADDRSTRLEN];
 	struct sockaddr_in6 *addr6;
 
+	// On lie la socket au port 8080
+    struct sockaddr_in6 peer;
+    memset (&peer, 0, sizeof(peer));
+    peer.sin6_family = PF_INET6;
+    peer.sin6_port = htons(8080);
+
 	for (ap = dest_info; ap != NULL; ap = ap->ai_next) {
 		sockfd = socket(ap->ai_family, ap->ai_socktype, ap->ai_protocol);
 
@@ -214,7 +220,7 @@ int main (int argc, char * argv[]) {
 			printf("IP du premier voisin permanent ---> %s\n", ipv4);
 			printf("*************************\n");
 
-			if (bind(sockfd, ap->ai_addr, (int)ap->ai_addrlen) < 0 ) { 
+			if (bind(sockfd, (struct sockaddr*)&peer, sizeof(peer)) < 0 ) { 
        			perror("bind failed"); 
         		exit(EXIT_FAILURE); 
     		} 
@@ -227,7 +233,7 @@ int main (int argc, char * argv[]) {
 			printf("IP du premier voisin permanent ---> %s\n", ipv6);
 			printf("*************************\n");
 
-			if (bind(sockfd, ap->ai_addr, (int)ap->ai_addrlen) < 0 ) { 
+			if (bind(sockfd, (struct sockaddr*)&peer, sizeof(peer)) < 0 ) { 
        			perror("bind failed"); 
         		exit(EXIT_FAILURE); 
     		} 
