@@ -59,7 +59,10 @@ void handle_alarm(int sig) {
 void send_neighbour_req(int socket, struct pstate_t * peer_state){
 
 	struct neighbour * neighbour_choosen = pick_neighbour(peer_state->neighbour_table);
-
+	
+	char IP2[INET6_ADDRSTRLEN];
+    inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&neighbour_choosen->socket_addr)->sin6_addr), IP2, INET6_ADDRSTRLEN);
+    
 	struct tlv_t *neighbour_req = new_neighbour_request();
 	int datagram_length1;
 	char *datagram1 = build_tlvs_to_char(&datagram_length1, 1, neighbour_req);
@@ -70,6 +73,8 @@ void send_neighbour_req(int socket, struct pstate_t * peer_state){
 	}
 	else {
 		printf("--> TLV NEIGHBOUR REQUEST ENVOYE\n");
+		printf("(from send_neighbour_req) THE IP ADDRESS IS : %s\n", IP2);
+
 
 	}
 
