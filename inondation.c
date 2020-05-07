@@ -75,12 +75,32 @@ void *build_res_neighbour_req(struct pstate_t *peer_state) {
 // --------------------------- RESPOND TO NEIGHBOUR ---------------------------
 
 /*
-Renvoie un network hash contenant le network hash calculé par le pair.
+Envoie un network hash tlv à l'adresse IP & numéro de port contenu dans le tlv neighbour reçu
 */
-void *build_res_neighbour(struct pstate_t *peer_state) {
-	return new_network_hash(peer_state->network_hash);
-}
+int build_res_neighbour(struct tlv_t *tlv, int sockfd, struct pstate_t *peer_state) {
+	if (tlv->type != 3) {
+		printf("Shouldn't be in build_res_neighbour function.\n");
+		return -1; // <-- ??
+	}
 
+	struct tlv_t *tlv_to_send = new_network_hash(peer_state->network_hash);
+	int size_dtg;
+	char *dtg_char = build_tlvs_to_char2(&size_dtg, 1, tlv_to_send);
+
+	struct sockaddr_in6 to;
+	memset(&to, 0, sizeof(to));
+	to.sin6_family = AF_INET6;
+	to.sin6_port = tlv->body.neighbour_body->port;
+	to.sin6_addr = tlv->body.neighbour_body->iPv6_addr;
+
+	int rc = sendto(sockfd, dtg_char, size_dtg, 0, (struct sockaddr*)&to, sizeof(to));
+		if (rc < 0){
+		perror("Send to");
+		return rc; // ??
+	}
+
+	return 0;
+}
 
 // ----------------------------------------------------------------------------
 // ------------------------- RESPOND TO NETWORK HASH --------------------------
@@ -274,7 +294,7 @@ void *respond_to_tlv(struct tlv_t *tlv, int sockfd, struct sockaddr_in6 *from, s
 			break;
 
 		case 3: // Neigbhour
-			response_tlv = build_res_neighbour(peer_state); // <- récupère network hash
+			build_res_neighbour(tlv, sockfd, peer_state); // <--- NE RÉCUPÈRE RIEN DU TOUT
 			break;
 
 		case 4: // Network Hash
