@@ -163,7 +163,7 @@ int respond_to_network_state_req(int sockfd, struct sockaddr_in6 *from, size_t s
 		if (count == 35) {
 			pointer = NULL;
 			printf("***************************************************\n");
-			printf("I:166 - Envoi de 35 Network State Request : \n");
+			printf("I:166 - Envoi de 35 Node Hash : \n");
 			send_tlv_list(sockfd, from, size_from, count, tlv_list);
 			printf("***************************************************\n");
 			pointer = &tlv_list;
@@ -174,7 +174,7 @@ int respond_to_network_state_req(int sockfd, struct sockaddr_in6 *from, size_t s
     if (count != 0) {
     	pointer = NULL;
     	printf("***************************************************\n");
-    	printf("I:166 - Envoi de %d Network State Request : \n", count);
+    	printf("I:166 - Envoi de %d Node Hash : \n", count);
     	send_tlv_list(sockfd, from, size_from, count, tlv_list);
     	printf("***************************************************\n");
     }
