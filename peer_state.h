@@ -1,7 +1,7 @@
 #ifndef __PEER_STATE_H__
 #define __PEER_STATE_H__
 
-#include "new_neighbour.h"
+#include "neighbour.h"
 #include <glib.h>
 #include <glib/gprintf.h>
 

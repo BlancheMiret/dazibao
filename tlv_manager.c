@@ -299,11 +299,25 @@ void *build_tlvs_to_char2(int *size_dtg, int nbtlv, struct tlv_t *tlv_list) { //
 // ----------------------------------------------------------------------------
 // ---------------------- FONCTIONS DÉBALLAGE DATAGRAMME ----------------------
 
+void free_tlvs_of_dtg(struct dtg_t *dtg) {
+	struct tlv_t *tlv = dtg->tlv_list;
+	while(tlv != NULL) {
+		struct tlv_t *temp = tlv;
+		tlv = tlv->next;
+		free(temp);
+	}
+}
+
 // Prend l'adresse d'un buffer, un adresse vers un tlv (mémoire allouée) et construire un tlv
 // selon contenu du buffer
-void unpack_next_tlv(char *from, struct tlv_t *tlv) {
+int unpack_next_tlv(char *from, struct tlv_t *tlv, size_t size_left_dtg) {
+
+	if (size_left_dtg < TLV_HEADER) return -1;
+
 	memcpy(&tlv->type, from, 1);
 	memcpy(&tlv->length, from + 1, 1);
+
+	if(tlv->length + TLV_HEADER > size_left_dtg) return -1;
 
 	switch(tlv->type) {
 		case 1 :
@@ -359,16 +373,26 @@ void unpack_next_tlv(char *from, struct tlv_t *tlv) {
 			exit(1);
 	}
 
+	return 0;
+
 }
 
 // prend un datagramme sous forme 
 void *unpack_dtg(char *buf, int size_dtg) {
+
+	if(size_dtg < DTG_HEADER) return NULL;
+
 	struct dtg_t *dtg = malloc(sizeof(struct dtg_t));
 	memset(dtg, 0, sizeof(struct dtg_t));
 
 	memcpy(&dtg->magic, buf, 1);
 	memcpy(&dtg->version, buf + 1, 1);
 	memcpy(&dtg->body_length, buf + 2, 2);
+
+	if(ntohs(dtg->body_length) + DTG_HEADER != size_dtg) {
+		free(dtg);
+		return NULL;
+	}
 
 	//uint16_t size = ntohs(dtg->body_length);
 	//printf("DEBUG SIZE %"PRIu16"\n", size);
@@ -395,7 +419,13 @@ void *unpack_dtg(char *buf, int size_dtg) {
 		
 		*tlv = malloc(sizeof(struct tlv_t));
 		memset(*tlv, 0, sizeof(struct tlv_t));
-		unpack_next_tlv(buf, *tlv);
+
+		if (unpack_next_tlv(buf, *tlv, decount) < 0) {
+			free_tlvs_of_dtg(dtg);
+			free(dtg);
+			return NULL; // <--- besoin de free tous les tlv de dtg d'abord.
+		}
+
 		decount = decount - (*tlv)->length - TLV_HEADER;
 		buf = buf + (*tlv)->length + TLV_HEADER;
 		tlv = &((*tlv)->next); 
