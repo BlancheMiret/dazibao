@@ -9,8 +9,8 @@ all : $(EXEC)
 
 #################### LINKING
 
-tlv : dazibao.o tlv_manager.o inondation.o new_neighbour.o hash_network.o data_manager.o hash.o 
-	$(CC) -o tlv dazibao.o tlv_manager.o inondation.o new_neighbour.o hash_network.o data_manager.o hash.o $(CRYPTO) $(PKGCONFIG) -std=gnu99
+tlv : dazibao.o tlv_manager.o inondation.o new_neighbour.o hash_network.o data_manager.o hash.o maintain_neighbours.o
+	$(CC) -o tlv dazibao.o tlv_manager.o inondation.o new_neighbour.o hash_network.o data_manager.o hash.o maintain_neighbours.o $(CRYPTO) $(PKGCONFIG) -std=gnu99
 
 test_neighbour : test_neighbour.o new_neighbour.o
 	$(CC) $(CFLAGS) test_neighbour.o new_neighbour.o $(PKGCONFIG) -o test_neighbour_exe
@@ -23,16 +23,16 @@ test_data_manager : test_data_manager.c data_manager.o hash.o
 
 ###################### COMPILATION OF OBJECT FILES
 
-dazibao.o : dazibao.c tlv_manager.h new_neighbour.h data_manager.h hash.h inondation.h peer_state.h
+dazibao.o : dazibao.c tlv_manager.h new_neighbour.h data_manager.h hash.h inondation.h peer_state.h maintain_neighbours.h
 	$(CC) $(CFLAGS) -o dazibao.o -c dazibao.c $(PKGCONFIG) -std=gnu99
 
 test_neighbour.o : test_neighbour.c new_neighbour.h
 	$(CC) $(CFLAGS) -o test_neighbour.o -c test_neighbour.c $(PKGCONFIG)
 
 test_tlv_manager.o : test_tlv_manager.c tlv_manager.h
-	$(CC) $(CFLAGS) -o test_tlv_manager.o -c test_tlv_manager.c $(CRYPTO)
+	$(CC) $(CFLAGS) -o test_tlv_manager.o -c test_tlv_manager.c $(CRYPTO) $(PKGCONFIG)
 
-tlv_manager.o : tlv_manager.c tlv_manager.h hash.h
+tlv_manager.o : tlv_manager.c tlv_manager.h hash.h peer_state.h
 	$(CC) $(CFLAGS) -o tlv_manager.o -c tlv_manager.c $(PKGCONFIG) -std=gnu99
 
 data_manager.o : data_manager.c data_manager.h hash.h
@@ -52,6 +52,9 @@ hash_network.o : hash_network.c hash_network.h
 
 inondation.o : inondation.c inondation.h
 	$(CC) $(CFLAGS) -c inondation.c -o inondation.o $(PKGCONFIG) $(CRYPTO)
+
+maintain_neighbours.o : maintain_neighbours.c maintain_neighbours.h
+	$(CC) $(CFLAGS) -c maintain_neighbours.c -o maintain_neighbours.o $(PKGCONFIG) $(CRYPTO)
 
 cleanall:
 	rm -rf *~ $(ALL)
