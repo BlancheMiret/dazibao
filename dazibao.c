@@ -30,18 +30,6 @@
 
 #define SIZE 1024
 
-char *data;
-uint16_t new_sequence;
-uint64_t node_id;
-
-void print_hexa(char hash[16]) {
-	for (int i = 0; i < 16; i++) {
-		printf("%02x", hash[i]);
-	}
-	printf("\n");
-}
-
-GHashTable *table_voisins;
 
 //variable globale pour notifier la capture d'un signal
 volatile sig_atomic_t print_flag = false;
@@ -62,7 +50,7 @@ struct pstate_t * peer_state_init(){
 	memset(peer_state, 0, sizeof(struct pstate_t));
 
 	// DATA ET NUMÉRO DE SÉQUENCE 
-	data = "J'ai passé une excellente soirée mais ce n'était pas celle-ci.";
+	char *data = "J'ai passé une excellente soirée mais ce n'était pas celle-ci.";
 	memcpy(peer_state->data, data, strlen(data));
 	peer_state->num_seq = htons(0x3E0D); // 0x3D = 61 --- 0x3E08 = 15880 
 	//0x3E0D = 15885
