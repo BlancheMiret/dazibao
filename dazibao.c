@@ -58,7 +58,7 @@ int peer_initialization(){
 	int sockfd;
 	int rc;
 
-    sockfd = socket(PF_INET6, SOCK_DGRAM, 0);
+    sockfd = socket(AF_INET6, SOCK_DGRAM, 0);
 	// On lie la socket au port 8080
     struct sockaddr_in6 peer;
     memset (&peer, 0, sizeof(peer));
@@ -109,10 +109,10 @@ struct addrinfo * permanent_neighbour(char * argv[],struct pstate_t * peer_state
     int sockfd;
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = PF_INET6;
+	hints.ai_family = AF_INET6;
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_flags = 0;
-	hints.ai_protocol = 0;
+	hints.ai_protocol = IPPROTO_UDP;
 
 	struct addrinfo *dest_info;
 	int status;
