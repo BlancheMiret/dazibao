@@ -248,9 +248,6 @@ int respond_to_node_state(struct tlv_t *tlv, struct pstate_t *peer_state) {
 	uint16_t neigh_seq_no = tlv->body.nodestate_body->seq_no; 
 
 	struct data_t *value = g_hash_table_lookup(peer_state->data_table, &neigh_node_id);
-	//
-	//int rc = compare_hash(peer_state->data_table, tlv->body.nodestate_body->node_id, tlv->body.nodestate_body->node_hash); // <-- fonction à vérifier. Notamment : si pas d'entrée, renvoie bien -1 ?
-	//if (rc) return 0;
 
 	if(value != NULL && compare_2_hash(tlv->body.nodestate_body->node_hash, value->node_hash)) return 0;
 
@@ -260,7 +257,9 @@ int respond_to_node_state(struct tlv_t *tlv, struct pstate_t *peer_state) {
 			perror("You forgot to add yourself to your data table.\n");
 			exit(1);
 		}
-		update_self_seq_num(peer_state->data_table, peer_state->node_id, neigh_seq_no);
+		if (!is_greater_than(ntohs(value->seq_no), ntohs(neigh_seq_no))) {	
+			update_self_seq_num(peer_state->data_table, peer_state->node_id, neigh_seq_no);
+		}
 		return 0;
 	}
 
