@@ -26,7 +26,7 @@
 #include "tlv_manager.h"
 #include "inondation.h"
 #include "peer_state.h"
-
+#include "maintain_neighbours.h"
 
 #define SIZE 1024
 
@@ -53,6 +53,9 @@ void handle_alarm(int sig) {
 }
 
 
+
+
+
 int main (int argc, char * argv[]) {
 
 	//SIGALRM: ce signal survient lorsqu’une alarme définie par la fonction alarm(..) a expiré
@@ -68,7 +71,8 @@ int main (int argc, char * argv[]) {
 	// DATA ET NUMÉRO DE SÉQUENCE 
 	data = "J'ai passé une excellente soirée mais ce n'était pas celle-ci.";
 	memcpy(peer_state->data, data, strlen(data));
-	peer_state->num_seq = htons(0x3E08); // 0x3D = 61 --- 0x3E08 = 15880 
+	peer_state->num_seq = htons(0x3E0D); // 0x3D = 61 --- 0x3E08 = 15880 
+	//0x3E0D = 15885
 
 	// -- ID DE NOTRE NOEUD -- 
 
@@ -79,6 +83,8 @@ int main (int argc, char * argv[]) {
 	(((uint64_t) rand() << 32) & 0x0000FFFF00000000ull) |
 	(((uint64_t) rand() << 48) & 0xFFFF000000000000ull);
 	//printf("node_id %" PRIu64"\n", peer_state->node_id) ;
+
+	//peer_state->node_id=htobe64(node_id);d
 
 	char node_hash[16];
 	hash_node(peer_state->node_id, peer_state->num_seq, peer_state->data, node_hash);
@@ -206,6 +212,11 @@ int main (int argc, char * argv[]) {
 		exit(2);
 	}
 
+	else{
+
+		printf("Node state envoyé!!! \n");
+	}
+
 
 	/* --------------- PARTIE MAINTENANCE DE LA LISTE DE VOISINS ? (pour l'instant juste un test pour afficher les TLV reçus) ---------------------*/
 
@@ -215,13 +226,11 @@ int main (int argc, char * argv[]) {
 		if ( print_flag ) {
 
 
+			printf("D:297 --- TIMEOUT !! (20 secondes) --- \n");
 			
-
-
-
-			printf("D:297 --- TIMOUT !! (20 secondes) --- \n");
-			//A VERIFIER
 			sweep_neighbour_table(peer_state->neighbour_table);
+
+			send_network_hash(sockfd, peer_state);
 
 			//display_neighbour_table(peer_state->neighbour_table);
 			printf("D:302 - Sweeptable, il reste %d voisins.\n", get_nb_neighbour(peer_state->neighbour_table));
@@ -252,14 +261,14 @@ int main (int argc, char * argv[]) {
 	
 
 		//timeout = 20 secondes 
-		int to = 20;
+		int to = 50;
 		struct timeval timeout = {to,0};
 
 		int sel = select(sockfd + 1, &readfds, NULL, NULL, &timeout);
 
 		if(sel < 0) {
 			//interrompu par un signal
-			if (errno == EINTR) {    
+			if (errno == EINTR) {   
 				continue;
 			}
 			perror("Select failed");
@@ -297,7 +306,7 @@ int main (int argc, char * argv[]) {
 
 					struct dtg_t *dtg = unpack_dtg(recvMsg, rc);
 					//print_dtg(dtg);
-					print_dtg_short(dtg);
+					print_dtg_short(dtg,peer_state);
 					printf("***************************************************\n");
 
 					respond_to_dtg(dtg, sockfd, &from, from_len, peer_state); // <---- INONDATION 
