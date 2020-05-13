@@ -38,7 +38,7 @@ int compare_addr(struct in6_addr *IP1, struct in6_addr *IP2) {
 
 //Fonction qui vérifie les conditions d'ajout d'un voisin de la partie 4.2 avant de l'ajouter
 //Changer le nom peut-être ?
-void maintain_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 from, struct sockaddr_in6 *permanent_neighbour){
+void maintain_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 from, struct sockaddr_storage permanent_neighbour){
 
 	int rc;
 	//Cas où l'émetteur n'est pas présent et la table contient au moins 15 entrées
@@ -60,14 +60,19 @@ void maintain_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 
 		}**/
 
 		//ajout d'un voisin transitoire
-		//On compare l'adresse du from avec l'adresse du voisin permanent, 
+		//On compare l'adresse du from avec l'adresse ou les adresses du voisin permanent (A AJOUTER) 
 		//si elles sont différentes on ajoute le voisin transitoire
-		if(compare_addr(&permanent_neighbour->sin6_addr, &from.sin6_addr) != 0){
+		if(compare_addr(&(((struct sockaddr_in6 *)&permanent_neighbour)->sin6_addr), &from.sin6_addr) != 0){
 			
 			rc=add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from, 0);
 			if(rc == 0)
 			{
 				printf("D:111 - voisin transitoire ajouté!! \n");
+
+				char IP1[INET6_ADDRSTRLEN];
+				inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&permanent_neighbour)->sin6_addr), IP1, INET6_ADDRSTRLEN);
+				printf("IP DANS MAINTAIN: %s\n", IP1);
+
 				char IP[INET6_ADDRSTRLEN];
 				inet_ntop(AF_INET6, &(from.sin6_addr), IP, INET6_ADDRSTRLEN);
 				printf("D:118 - L'adresse IP du voisin transitoire ajouté est : %s\n", IP);
