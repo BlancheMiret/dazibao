@@ -55,6 +55,41 @@ void handle_alarm(int sig) {
 
 
 
+struct pstate_t * peer_state_init(){
+
+
+	struct pstate_t *peer_state = malloc(sizeof(struct pstate_t));
+	memset(peer_state, 0, sizeof(struct pstate_t));
+
+	// DATA ET NUMÉRO DE SÉQUENCE 
+	data = "J'ai passé une excellente soirée mais ce n'était pas celle-ci.";
+	memcpy(peer_state->data, data, strlen(data));
+	peer_state->num_seq = htons(0x3E0D); // 0x3D = 61 --- 0x3E08 = 15880 
+	//0x3E0D = 15885
+
+	// -- ID DE NOTRE NOEUD -- 
+
+	//Asmaa: Il faut qu'on change le type du noeud en unsigned char ou convertir uint64_t avant d'envoyer car c'est un entier
+	peer_state->node_id =
+	(((uint64_t) rand() <<  0) & 0x000000000000FFFFull) | 
+	(((uint64_t) rand() << 16) & 0x00000000FFFF0000ull) | 
+	(((uint64_t) rand() << 32) & 0x0000FFFF00000000ull) |
+	(((uint64_t) rand() << 48) & 0xFFFF000000000000ull);
+	//printf("node_id %" PRIu64"\n", peer_state->node_id) ;
+
+	//peer_state->node_id=htobe64(node_id);d
+
+	peer_state->data_table = create_data_table();
+	add_data(peer_state->data_table, peer_state->node_id, peer_state->num_seq, peer_state->data);
+
+	return peer_state;
+
+
+}
+
+
+
+
 /************ Ajout du premier voisin permanent ************/ 
 
 //Gérer le cas où on arrive pas à trouver/ajouter un voisin permanent
@@ -313,55 +348,37 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 
 }
 
-int main (int argc, char * argv[]) {
+int main(int argc, char * argv[]) {
 
 
 	int rc;
 	 
+    // ----- initialisation données -----
 
-	// ----- INITIALISATION DONNÉES -----
+	struct pstate_t * peer_state = peer_state_init();
 
-	struct pstate_t *peer_state = malloc(sizeof(struct pstate_t));
-	memset(peer_state, 0, sizeof(struct pstate_t));
-
-	// DATA ET NUMÉRO DE SÉQUENCE 
-	data = "J'ai passé une excellente soirée mais ce n'était pas celle-ci.";
-	memcpy(peer_state->data, data, strlen(data));
-	peer_state->num_seq = htons(0x3E0D); // 0x3D = 61 --- 0x3E08 = 15880 
-	//0x3E0D = 15885
-
-	// -- ID DE NOTRE NOEUD -- 
-
-	//Asmaa: Il faut qu'on change le type du noeud en unsigned char ou convertir uint64_t avant d'envoyer car c'est un entier
-	peer_state->node_id =
-	(((uint64_t) rand() <<  0) & 0x000000000000FFFFull) | 
-	(((uint64_t) rand() << 16) & 0x00000000FFFF0000ull) | 
-	(((uint64_t) rand() << 32) & 0x0000FFFF00000000ull) |
-	(((uint64_t) rand() << 48) & 0xFFFF000000000000ull);
-	//printf("node_id %" PRIu64"\n", peer_state->node_id) ;
-
-	//peer_state->node_id=htobe64(node_id);d
-
-	char node_hash[16];
+    char node_hash[16];
 	hash_node(peer_state->node_id, peer_state->num_seq, peer_state->data, node_hash);
 	//print_hash(node_hash);
 
-	peer_state->data_table = create_data_table();
-	add_data(peer_state->data_table, peer_state->node_id, peer_state->num_seq, peer_state->data);
 
 	// ----------------------------------
 
-	
-	int sockfd = initialization(argv,peer_state);
+
+    // ----- initialisation de la socket et ajout du voisin permanent -----
+    int sockfd = initialization(argv,peer_state);
 	socket_parameters(sockfd);
 
-	// -- CONSTRUCTION D'UN DATAGRAM -- 
+    // ----- Construction d'un datagram -- 
+
 	struct tlv_t *node_state = new_node_state(peer_state->node_id, peer_state->num_seq, node_hash, peer_state->data);
 	int datagram_length;
 	char *datagram = build_tlvs_to_char(&datagram_length, 1, node_state);
 
- 
+    // ----- Premier TLV à envoyer au voisin permanent -----
+
     struct sockaddr_storage permanent_neighbour = peer_state->neighbour_table[0].socket_addr;
+	
 	//Envoi du paquet Node State
 	rc = sendto(sockfd, datagram, datagram_length, 0, (const struct sockaddr*)&permanent_neighbour, sizeof(struct sockaddr_in6));
 	
@@ -375,6 +392,7 @@ int main (int argc, char * argv[]) {
 		printf("Node state envoyé!!! \n");
 	}
  	
+ 	// -- Partie maintenance de la table de voisins & inondation -- 
  	event_loop(peer_state,sockfd);
 
 	
