@@ -9,7 +9,7 @@ int compare_2_hash(char hash1[16], char hash2[16]) {
 
 void print_hash(char *hash) {
     for (int i = 0; i < 16; i++) {
-        printf("%02x", hash[i]);
+        printf("%02x", (unsigned char) hash[i]);
     }
     printf("\n");
 }
