@@ -3,14 +3,14 @@ CFLAGS = -Wall -g -std=gnu99 `pkg-config --cflags glib-2.0`
 LDFLAGS = -lcrypto `pkg-config --libs glib-2.0`
 SRC = dazibao.c inondation.c maintain_neighbours.c tlv_manager.c data_manager.c neighbour.c hash_network.c hash.c
 OBJS = $(SRC:%c=%o)
-EXEC = tlv
+EXEC = dazibao
 
 all : $(EXEC)
 
 #LINKING
 
-tlv : $(OBJS)
-	$(CC) $^ -o tlv $(LDFLAGS)
+dazibao : $(OBJS)
+	$(CC) $^ -o $@ $(LDFLAGS)
 
 #COMPILATION
 
