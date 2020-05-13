@@ -15,6 +15,7 @@ dazibao : $(OBJS)
 #COMPILATION
 
 %.o:%.c
+	@echo " building $(@:%.o=%) . . . "
 	@$(CC) -c $< -o $@ $(CFLAGS)
 
 dazibao.o : dazibao.c inondation.h maintain_neighbours.h tlv_manager.h data_manager.h neighbour.h hash_network.h hash.h peer_state.h 
