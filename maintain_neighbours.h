@@ -20,6 +20,6 @@
 
 void send_neighbour_req(int socket, struct pstate_t * peer_state);
 int compare_addr(struct in6_addr *IP1, struct in6_addr *IP2);
-void maintain_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 from, struct sockaddr_in6 *permanent_neighbour);
+void maintain_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 from, struct sockaddr_storage permanent_neighbour);
 void send_network_hash(int socket, struct pstate_t * peer_state);
 
