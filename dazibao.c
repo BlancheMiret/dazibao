@@ -45,15 +45,14 @@ void handle_alarm(int sig) {
 
 struct pstate_t * peer_state_init(){
 
-
 	struct pstate_t *peer_state = malloc(sizeof(struct pstate_t));
 	memset(peer_state, 0, sizeof(struct pstate_t));
 
 	// DATA ET NUMÉRO DE SÉQUENCE 
 	char *data = "J'ai passé une excellente soirée mais ce n'était pas celle-ci.";
 	memcpy(peer_state->data, data, strlen(data));
-	peer_state->num_seq = htons(0x3E0D); // 0x3D = 61 --- 0x3E08 = 15880 
-	//0x3E0D = 15885
+	peer_state->num_seq = htons(0x3E0E); // 0x3D = 61 --- 0x3E08 = 15880 
+	//0x3E0E = 15886
 
 	// -- ID DE NOTRE NOEUD -- 
 
@@ -86,11 +85,11 @@ struct pstate_t * peer_state_init(){
 //Initialiser la socker
 int initialization(char * argv[],struct pstate_t * peer_state){
 
-	/******** paramètres réseaux ********/
+/******** paramètres réseaux ********/
 
 	char *dest_host = argv[1];
 	char *dest_port = argv[2];
-    int sockfd;
+	int sockfd;
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET6;
@@ -107,15 +106,15 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 		exit(1);
 	}
 
-	// Initialisation de la socket
+// Initialisation de la socket
 	struct addrinfo *ap;
-	
 
-	 /* IPv4 */
+
+/* IPv4 */
 	char ipv4[INET_ADDRSTRLEN];
 	struct sockaddr_in *addr4;
 
-	/* IPv6 */
+/* IPv6 */
 	char ipv6[INET6_ADDRSTRLEN];
 	struct sockaddr_in6 *addr6;
 
@@ -134,7 +133,7 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 			printf("IP du premier voisin permanent ---> %s\n", ipv4);
 			printf("*************************\n");		
 
-    		//On ajoute au départ l'adresse IPV4 du voisin permanent
+//On ajoute au départ l'adresse IPV4 du voisin permanent
 			add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)addr4, 1);
 		}
 
@@ -144,12 +143,15 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 			printf("IP du premier voisin permanent ---> %s\n", ipv6);
 			printf("*************************\n");
 
-    		//On ajoute au départ l'adresse IPV6 du voisin permanent
+//On ajoute au départ l'adresse IPV6 du voisin permanent
 			add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)addr6, 1);
 		}
 
-		//if (sockfd != -1) break;
-    }
+//if (sockfd != -1) break;
+	}
+
+	printf("NOMBRE DE VOISINS  %d\n",get_nb_neighbour(peer_state->neighbour_table));
+	display_neighbour_table(peer_state->neighbour_table);
 
 
 	freeaddrinfo(dest_info);
@@ -160,26 +162,26 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 
 int socket_parameters(int sockfd){
 
-	//int sockfd;
+//int sockfd;
 	int rc;
 
-    sockfd = socket(AF_INET6, SOCK_DGRAM, 0);
-	// On lie la socket au port 8080
-    struct sockaddr_in6 peer;
-    memset (&peer, 0, sizeof(peer));
-    peer.sin6_family = AF_INET6;
-    peer.sin6_port = htons(8080);
+	sockfd = socket(AF_INET6, SOCK_DGRAM, 0);
+// On lie la socket au port 8080
+	struct sockaddr_in6 peer;
+	memset (&peer, 0, sizeof(peer));
+	peer.sin6_family = AF_INET6;
+	peer.sin6_port = htons(8080);
 
 
-    //Paramétrage de la socket
+//Paramétrage de la socket
 	int one = 1;
 	int size_one = sizeof one;
-	// Évite le temps mort
+// Évite le temps mort
 	if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &one, size_one) < 0) {
 		perror("setsockopt SO_TIMESTAMP");
 		exit(2);
 	}
-	
+
 	if(setsockopt(sockfd, IPPROTO_IPV6, IPV6_V6ONLY, &one, size_one) < 0) {
 		perror("setsockopt - IPV6_V6ONLY");
 		exit(2);
@@ -192,12 +194,12 @@ int socket_parameters(int sockfd){
 	}
 
 	if (bind(sockfd, (struct sockaddr*)&peer, sizeof(peer)) < 0 ) { 
-       	perror("bind failed"); 
-        exit(EXIT_FAILURE); 
-    } 
+		perror("bind failed"); 
+		exit(EXIT_FAILURE); 
+	} 
 
 
-	/* Parametrage pour que la socket soit en mode non bloquant */
+/* Parametrage pour que la socket soit en mode non bloquant */
 
 	rc = fcntl(sockfd, F_GETFL);
 	if(rc < 0) {
@@ -210,7 +212,7 @@ int socket_parameters(int sockfd){
 		return -1;
 	}
 
-    return 1;
+	return 1;
 
 }
 
@@ -219,8 +221,8 @@ int socket_parameters(int sockfd){
 
 void event_loop(struct pstate_t * peer_state, int sockfd){
 
-	
-    //SIGALRM: ce signal survient lorsqu’une alarme définie par la fonction alarm(..) a expiré
+
+	//SIGALRM: ce signal survient lorsqu’une alarme définie par la fonction alarm(..) a expiré
 	signal( SIGALRM, handle_alarm ); 
 	//Alarme qui se déclenche 
 	alarm(20);
@@ -234,7 +236,7 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 
 
 			printf("D:297 --- TIMEOUT !! (20 secondes) --- \n");
-			
+
 			sweep_neighbour_table(peer_state->neighbour_table);
 
 			send_network_hash(sockfd, peer_state);
@@ -244,10 +246,10 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 
 			//ENVOI D'UN TLV NEIGHBOUR REQUEST
 			//Si la table contient au moins de 5 voisins,on envoie d'un TLV neighbour request à un voisin tiré au hasard 
-			
+
 			if(get_nb_neighbour(peer_state->neighbour_table)< 5 && get_nb_neighbour(peer_state->neighbour_table) > 0 ){
 
-				 send_neighbour_req(sockfd, peer_state);
+				send_neighbour_req(sockfd, peer_state);
 
 			}
 
@@ -265,9 +267,9 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 		char recvMsg[SIZE];
 		memset(recvMsg, '\0', SIZE);
 
-	
 
-		//timeout = 20 secondes 
+
+		//timeout = 50 secondes 
 		int to = 50;
 		struct timeval timeout = {to,0};
 
@@ -311,26 +313,32 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 					inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&from)->sin6_addr), IP, INET6_ADDRSTRLEN);
 					printf("D:373 : - Le message provient de l'IP : %s\n", IP);
 
-					struct dtg_t *dtg = unpack_dtg(recvMsg, rc);
-					//print_dtg(dtg);
-					print_dtg_short(dtg,peer_state);
-					printf("***************************************************\n");
+					//Si l'émetteur n'est pas présent et si la table de voisins contient déjà 15 entrées
+					if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) == -1 && get_nb_neighbour(peer_state->neighbour_table) == 15){
 
-					respond_to_dtg(dtg, sockfd, &from, from_len, peer_state); // <---- INONDATION 
-                    
-                    
+						printf("La table de voisin contient 15 entrées, le paquet est ignoré!\n");
 
-                    //(A MODIFIER! PLUS TARD)
-                    struct sockaddr_storage permanent_neighbour = peer_state->neighbour_table[0].socket_addr;
-					maintain_neighbour_table(peer_state, from,permanent_neighbour);
+					}
 
+					if(get_nb_neighbour(peer_state->neighbour_table)< 15){
+						struct dtg_t *dtg = unpack_dtg(recvMsg, rc);
+						print_dtg(dtg);
+						//print_dtg_short(dtg,peer_state);
+						printf("***************************************************\n");
+
+						respond_to_dtg(dtg, sockfd, &from, from_len, peer_state); // <---- INONDATION 
+
+	                    //(A MODIFIER! PLUS TARD)
+						struct sockaddr_storage permanent_neighbour = peer_state->neighbour_table[0].socket_addr;
+						maintain_neighbour_table(peer_state, from,permanent_neighbour);
+					}
 
 				}
 			}
 		}
 
 		if(sel == 0 ) {
-		//Timeout pour le recvfrom, faire un goto?
+//Timeout pour le recvfrom, faire un goto?
 		}
 	}
 
@@ -341,36 +349,36 @@ int main(int argc, char * argv[]) {
 
 
 	int rc;
-	 
-    // ----- initialisation données -----
+
+// ----- initialisation données -----
 
 	struct pstate_t * peer_state = peer_state_init();
 
-    char node_hash[16];
+	char node_hash[16];
 	hash_node(peer_state->node_id, peer_state->num_seq, peer_state->data, node_hash);
-	//print_hash(node_hash);
+//print_hash(node_hash);
 
 
-	// ----------------------------------
+// ----------------------------------
 
 
-    // ----- initialisation de la socket et ajout du voisin permanent -----
-    int sockfd = initialization(argv,peer_state);
+// ----- initialisation de la socket et ajout du voisin permanent -----
+	int sockfd = initialization(argv,peer_state);
 	socket_parameters(sockfd);
 
-    // ----- Construction d'un datagram -- 
+// ----- Construction d'un datagram -- 
 
 	struct tlv_t *node_state = new_node_state(peer_state->node_id, peer_state->num_seq, node_hash, peer_state->data);
 	int datagram_length;
 	char *datagram = build_tlvs_to_char(&datagram_length, 1, node_state);
 
-    // ----- Premier TLV à envoyer au voisin permanent -----
+// ----- Premier TLV à envoyer au voisin permanent -----
 
-    struct sockaddr_storage permanent_neighbour = peer_state->neighbour_table[0].socket_addr;
-	
-	//Envoi du paquet Node State
+	struct sockaddr_storage permanent_neighbour = peer_state->neighbour_table[0].socket_addr;
+
+//Envoi du paquet Node State
 	rc = sendto(sockfd, datagram, datagram_length, 0, (const struct sockaddr*)&permanent_neighbour, sizeof(struct sockaddr_in6));
-	
+
 	if (rc == -1) {
 		perror("sendto() error");
 		exit(2);
@@ -380,10 +388,10 @@ int main(int argc, char * argv[]) {
 
 		printf("Node state envoyé!!! \n");
 	}
- 	
- 	// -- Partie maintenance de la table de voisins & inondation -- 
- 	event_loop(peer_state,sockfd);
 
-	
+// -- Partie maintenance de la table de voisins & inondation -- 
+	event_loop(peer_state,sockfd);
+
+
 	return 0;
 }
