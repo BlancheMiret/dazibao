@@ -22,7 +22,7 @@
 //#include "tlv.h"
 #include "hash.h"
 #include "data_manager.h"
-#include "new_neighbour.h" // <--- ATTENTION NOUVEAU MODULE DES VOISINS
+#include "neighbour.h" // <--- ATTENTION NOUVEAU MODULE DES VOISINS
 #include "tlv_manager.h"
 #include "inondation.h"
 #include "peer_state.h"

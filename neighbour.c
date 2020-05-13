@@ -1,4 +1,4 @@
-#include "new_neighbour.h"
+#include "neighbour.h"
 
 
 // Renvoie le nombre de voisins dans neighbour_table

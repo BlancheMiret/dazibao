@@ -4,7 +4,7 @@
 #include <glib/gprintf.h>
 #include <unistd.h>
 #include <string.h>
-#include "new_neighbour.h"
+#include "neighbour.h"
 
 int main() {
 
