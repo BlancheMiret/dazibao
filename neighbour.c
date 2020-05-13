@@ -154,7 +154,7 @@ void display_neighbour(struct neighbour *n) {
 	printf("Is this neighbour permanent ? : %d\n", n->permanent);
 	printf("Time of last reception : \n");
 	printf("Seconds since Jan. 1, 1970 : %ld\n", n->last_reception.tv_sec);
-	printf("Microseconds since Jan. 1, 1970 : %ld\n", n->last_reception.tv_usec);
+	printf("Microseconds since Jan. 1, 1970 : %d\n", (int)n->last_reception.tv_usec);
 	printf("- Socket informations\n");
 	printf("sa_family is : %s\n", family);
 	printf("port is %d\n", ntohs(port));
