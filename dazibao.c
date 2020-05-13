@@ -306,7 +306,7 @@ int main (int argc, char * argv[]) {
 
 					struct dtg_t *dtg = unpack_dtg(recvMsg, rc);
 					//print_dtg(dtg);
-					print_dtg_short(dtg,peer_state);
+					print_dtg_short(dtg);
 					printf("***************************************************\n");
 
 					respond_to_dtg(dtg, sockfd, &from, from_len, peer_state); // <---- INONDATION 
