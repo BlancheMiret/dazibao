@@ -58,17 +58,12 @@ int peer_initialization(){
 	int sockfd;
 	int rc;
 
-    sockfd = socket(PF_INET6, SOCK_DGRAM, 0);
+    sockfd = socket(AF_INET6, SOCK_DGRAM, 0);
 	// On lie la socket au port 8080
     struct sockaddr_in6 peer;
     memset (&peer, 0, sizeof(peer));
-    peer.sin6_family = PF_INET6;
+    peer.sin6_family = AF_INET6;
     peer.sin6_port = htons(8080);
-
-    if (bind(sockfd, (struct sockaddr*)&peer, sizeof(peer)) < 0 ) { 
-       			perror("bind failed"); 
-        		exit(EXIT_FAILURE); 
-    		} 
 
 
     //Paramétrage de la socket
@@ -79,10 +74,22 @@ int peer_initialization(){
 		perror("setsockopt SO_TIMESTAMP");
 		exit(2);
 	}
+	
+	if(setsockopt(sockfd, IPPROTO_IPV6, IPV6_V6ONLY, &one, size_one) < 0) {
+		perror("setsockopt - IPV6_V6ONLY");
+		exit(2);
+
+	}
+
 	if(setsockopt(sockfd, SOL_SOCKET, SO_TIMESTAMP, &one, size_one) < 0) {
 		perror("setsockopt SO_TIMESTAMP");
 		exit(2);
 	}
+
+	if (bind(sockfd, (struct sockaddr*)&peer, sizeof(peer)) < 0 ) { 
+       	perror("bind failed"); 
+        exit(EXIT_FAILURE); 
+    } 
 
 
 	/* Parametrage pour que la socket soit en mode non bloquant */
@@ -109,7 +116,7 @@ struct addrinfo * permanent_neighbour(char * argv[],struct pstate_t * peer_state
     int sockfd;
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = PF_INET6;
+	hints.ai_family = AF_INET6;
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_flags = 0;
 	hints.ai_protocol = 0;
