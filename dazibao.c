@@ -53,61 +53,15 @@ void handle_alarm(int sig) {
 }
 
 
-int peer_initialization(){
-
-	int sockfd;
-	int rc;
-
-    sockfd = socket(AF_INET6, SOCK_DGRAM, 0);
-	// On lie la socket au port 8080
-    struct sockaddr_in6 peer;
-    memset (&peer, 0, sizeof(peer));
-    peer.sin6_family = AF_INET6;
-    peer.sin6_port = htons(8080);
 
 
-    //Paramétrage de la socket
-	int one = 1;
-	int size_one = sizeof one;
-	// Évite le temps mort
-	if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &one, size_one) < 0) {
-		perror("setsockopt SO_TIMESTAMP");
-		exit(2);
-	}
-	
-	if(setsockopt(sockfd, IPPROTO_IPV6, IPV6_V6ONLY, &one, size_one) < 0) {
-		perror("setsockopt - IPV6_V6ONLY");
-		exit(2);
-
-	}
-
-	if(setsockopt(sockfd, SOL_SOCKET, SO_TIMESTAMP, &one, size_one) < 0) {
-		perror("setsockopt SO_TIMESTAMP");
-		exit(2);
-	}
-
-	if (bind(sockfd, (struct sockaddr*)&peer, sizeof(peer)) < 0 ) { 
-       	perror("bind failed"); 
-        exit(EXIT_FAILURE); 
-    } 
-
-
-	/* Parametrage pour que la socket soit en mode non bloquant */
-
-	rc = fcntl(sockfd, F_GETFL);
-	if(rc < 0) {perror("fcntls - get"); return -1;}
-	rc = fcntl(sockfd, F_SETFL, rc | O_NONBLOCK);
-	if(rc < 0) {perror("fcntls - set"); return -1;}
-
-
-	return sockfd;
-
-}
-
-/************ Ajouter du premier voisin permanent ************/ 
+/************ Ajout du premier voisin permanent ************/ 
 
 //Gérer le cas où on arrive pas à trouver/ajouter un voisin permanent
-int add_permanent_neighbour(char * argv[],struct pstate_t * peer_state){
+
+//Ajouter un voisin permanent
+//Initialiser la socker
+int initialization(char * argv[],struct pstate_t * peer_state){
 
 	/******** paramètres réseaux ********/
 
@@ -118,7 +72,7 @@ int add_permanent_neighbour(char * argv[],struct pstate_t * peer_state){
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET6;
 	hints.ai_socktype = SOCK_DGRAM;
-	hints.ai_flags = 0;
+	hints.ai_flags = AI_V4MAPPED | AI_ALL;
 	hints.ai_protocol = 0;
 
 	struct addrinfo *dest_info;
@@ -177,6 +131,62 @@ int add_permanent_neighbour(char * argv[],struct pstate_t * peer_state){
 	freeaddrinfo(dest_info);
 
 	return sockfd;
+
+}
+
+int socket_parameters(int sockfd){
+
+	//int sockfd;
+	int rc;
+
+    sockfd = socket(AF_INET6, SOCK_DGRAM, 0);
+	// On lie la socket au port 8080
+    struct sockaddr_in6 peer;
+    memset (&peer, 0, sizeof(peer));
+    peer.sin6_family = AF_INET6;
+    peer.sin6_port = htons(8080);
+
+
+    //Paramétrage de la socket
+	int one = 1;
+	int size_one = sizeof one;
+	// Évite le temps mort
+	if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &one, size_one) < 0) {
+		perror("setsockopt SO_TIMESTAMP");
+		exit(2);
+	}
+	
+	if(setsockopt(sockfd, IPPROTO_IPV6, IPV6_V6ONLY, &one, size_one) < 0) {
+		perror("setsockopt - IPV6_V6ONLY");
+		exit(2);
+
+	}
+
+	if(setsockopt(sockfd, SOL_SOCKET, SO_TIMESTAMP, &one, size_one) < 0) {
+		perror("setsockopt SO_TIMESTAMP");
+		exit(2);
+	}
+
+	if (bind(sockfd, (struct sockaddr*)&peer, sizeof(peer)) < 0 ) { 
+       	perror("bind failed"); 
+        exit(EXIT_FAILURE); 
+    } 
+
+
+	/* Parametrage pour que la socket soit en mode non bloquant */
+
+	rc = fcntl(sockfd, F_GETFL);
+	if(rc < 0) {
+		perror("fcntls - get"); 
+		return -1;
+	}
+	rc = fcntl(sockfd, F_SETFL, rc | O_NONBLOCK);
+	if(rc < 0) {
+		perror("fcntls - set"); 
+		return -1;
+	}
+
+    return 1;
 
 }
 
@@ -341,9 +351,9 @@ int main (int argc, char * argv[]) {
 
 	// ----------------------------------
 
-	peer_initialization();
-	int sockfd = add_permanent_neighbour(argv,peer_state);
-
+	
+	int sockfd = initialization(argv,peer_state);
+	socket_parameters(sockfd);
 
 	// -- CONSTRUCTION D'UN DATAGRAM -- 
 	struct tlv_t *node_state = new_node_state(peer_state->node_id, peer_state->num_seq, node_hash, peer_state->data);
