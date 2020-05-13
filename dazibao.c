@@ -95,7 +95,7 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET6;
 	hints.ai_socktype = SOCK_DGRAM;
-	hints.ai_flags = AI_V4MAPPED | AI_ALL;
+	hints.ai_flags = AI_V4MAPPED|AI_ALL;
 	hints.ai_protocol = 0;
 
 	struct addrinfo *dest_info;
@@ -123,6 +123,11 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 	for (ap = dest_info; ap != NULL; ap = ap->ai_next) {
 		sockfd = socket(ap->ai_family, ap->ai_socktype, ap->ai_protocol);
 
+		if(sockfd<0){
+			close(sockfd);
+			continue;
+		}
+
 		if (ap->ai_addr->sa_family == AF_INET) {
 			addr4 = (struct sockaddr_in *) ap->ai_addr;
 			inet_ntop(AF_INET, &addr4->sin_addr, ipv4, INET_ADDRSTRLEN);
@@ -143,13 +148,9 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 			add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)addr6, 1);
 		}
 
-		if (sockfd != -1) break;
+		//if (sockfd != -1) break;
     }
 
-	if (ap == NULL) {
-		fprintf(stderr, "La connexion a échoué. \n");
-		exit(1);
-	}
 
 	freeaddrinfo(dest_info);
 
@@ -312,7 +313,7 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 
 					struct dtg_t *dtg = unpack_dtg(recvMsg, rc);
 					//print_dtg(dtg);
-					print_dtg_short(dtg);
+					print_dtg_short(dtg,peer_state);
 					printf("***************************************************\n");
 
 					respond_to_dtg(dtg, sockfd, &from, from_len, peer_state); // <---- INONDATION 
