@@ -19,7 +19,6 @@
 #include <openssl/sha.h>
 #include <glib.h>
 #include <glib/gprintf.h>
-//#include "tlv.h"
 #include "hash.h"
 #include "data_manager.h"
 #include "neighbour.h" // <--- ATTENTION NOUVEAU MODULE DES VOISINS
@@ -126,16 +125,16 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 			close(sockfd);
 			continue;
 		}
-
+		/**
 		if (ap->ai_addr->sa_family == AF_INET) {
 			addr4 = (struct sockaddr_in *) ap->ai_addr;
 			inet_ntop(AF_INET, &addr4->sin_addr, ipv4, INET_ADDRSTRLEN);
 			printf("IP du premier voisin permanent ---> %s\n", ipv4);
 			printf("*************************\n");		
 
-//On ajoute au départ l'adresse IPV4 du voisin permanent
+			//On ajoute au départ l'adresse IPV4 du voisin permanent
 			add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)addr4, 1);
-		}
+		}**/
 
 		if (ap->ai_addr->sa_family == AF_INET6) {
 			addr6 = (struct sockaddr_in6 *) ap->ai_addr;
@@ -143,11 +142,11 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 			printf("IP du premier voisin permanent ---> %s\n", ipv6);
 			printf("*************************\n");
 
-//On ajoute au départ l'adresse IPV6 du voisin permanent
+			//On ajoute au départ l'adresse IPV6 du voisin permanent
 			add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)addr6, 1);
 		}
 
-//if (sockfd != -1) break;
+		//if (sockfd != -1) break;
 	}
 
 	printf("NOMBRE DE VOISINS  %d\n",get_nb_neighbour(peer_state->neighbour_table));
@@ -162,21 +161,21 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 
 int socket_parameters(int sockfd){
 
-//int sockfd;
+	//int sockfd;
 	int rc;
 
 	sockfd = socket(AF_INET6, SOCK_DGRAM, 0);
-// On lie la socket au port 8080
+	// On lie la socket au port 8080
 	struct sockaddr_in6 peer;
 	memset (&peer, 0, sizeof(peer));
 	peer.sin6_family = AF_INET6;
 	peer.sin6_port = htons(8080);
 
 
-//Paramétrage de la socket
+	//Paramétrage de la socket
 	int one = 1;
 	int size_one = sizeof one;
-// Évite le temps mort
+	// Évite le temps mort
 	if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &one, size_one) < 0) {
 		perror("setsockopt SO_TIMESTAMP");
 		exit(2);
@@ -322,15 +321,14 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 
 					if(get_nb_neighbour(peer_state->neighbour_table)< 15){
 						struct dtg_t *dtg = unpack_dtg(recvMsg, rc);
-						print_dtg(dtg);
+						//print_dtg(dtg);
 						//print_dtg_short(dtg,peer_state);
+						print_dtg_short(dtg);
 						printf("***************************************************\n");
 
 						respond_to_dtg(dtg, sockfd, &from, from_len, peer_state); // <---- INONDATION 
 
-	                    //(A MODIFIER! PLUS TARD)
-						struct sockaddr_storage permanent_neighbour = peer_state->neighbour_table[0].socket_addr;
-						maintain_neighbour_table(peer_state, from,permanent_neighbour);
+						maintain_neighbour_table(peer_state, from);
 					}
 
 				}
@@ -338,7 +336,7 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 		}
 
 		if(sel == 0 ) {
-//Timeout pour le recvfrom, faire un goto?
+			//Timeout pour le recvfrom, faire un goto?
 		}
 	}
 
@@ -347,6 +345,15 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 
 int main(int argc, char * argv[]) {
 
+
+
+	if(argc == 1 || argc == 2){
+       
+       printf("Veuillez préciser l'adresse ou nom du serveur ainsi que le numéro de port\n");
+       printf("Exemple: ./dazibao jch.irif.fr 1212\n" );
+       exit(1);
+
+	}
 
 	int rc;
 
