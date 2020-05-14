@@ -34,16 +34,16 @@ void update_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 fr
 
 			rc = add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from, 0);
 			if(rc == 0) {
-				printf("D:111 - voisin transitoire ajouté!! \n");
+				printf("voisin transitoire ajouté!! \n");
 
 				char IP[INET6_ADDRSTRLEN];
 				inet_ntop(AF_INET6, &(from.sin6_addr), IP, INET6_ADDRSTRLEN);
-				printf("D:118 - L'adresse IP du voisin transitoire ajouté est : %s\n", IP);
+				printf("L'adresse IP du voisin transitoire ajouté est : %s\n", IP);
 			}
 	
 		//Affichage de la table de voisins :
 		display_neighbour_table(peer_state->neighbour_table);
-		printf("D:122 - Nombre voisins dans table des voisins : %d\n", get_nb_neighbour(peer_state->neighbour_table));
+		printf("Nombre voisins dans table des voisins : %d\n", get_nb_neighbour(peer_state->neighbour_table));
 	}
 
 	//Si le voisin est déjà présent mettre à jour la date de dernière réception de paquet
