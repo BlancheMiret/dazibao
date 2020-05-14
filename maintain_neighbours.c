@@ -15,7 +15,7 @@ int compare_addr(struct in6_addr *IP1, struct in6_addr *IP2) {
 
 //Fonction qui vérifie les conditions d'ajout d'un voisin de la partie 4.2 avant de l'ajouter
 //Changer le nom peut-être ?
-void maintain_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 from){
+void update_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 from){
 
 	int rc;
 
@@ -44,8 +44,8 @@ void maintain_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 
 	//Si le voisin est déjà présent mettre à jour la date de dernière réception de paquet
 	if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) != -1 ){
 
-		//A VERIFIER
 		update_last_reception(peer_state->neighbour_table, (struct sockaddr_storage*)&from);
+
 	}
 
 }
@@ -75,7 +75,8 @@ void send_neighbour_req(int socket, struct pstate_t * peer_state){
 
 
 //Fonction pour l'envoi d'un TLV network hash à tous les voisins chaque 20s 
-void send_network_hash(int socket, struct pstate_t * peer_state){
+//retourne 1 si le TLV a bien a été envoyé, 0 sinon 
+int send_network_hash(int socket, struct pstate_t * peer_state){
 
     //Création du datagramme contenant le TLV network hash
 	struct tlv_t *network_hash=new_network_hash(peer_state->network_hash) ;
@@ -91,13 +92,13 @@ void send_network_hash(int socket, struct pstate_t * peer_state){
 			status = sendto(socket, datagram, datagram_length, 0, (const struct sockaddr*)&peer_state->neighbour_table[i].socket_addr, sizeof(struct sockaddr_in6));
 			if (status == -1) {
 				perror("sendto() error ");
-				//exit(2);
+				return 0;
 			}
-			else {
-				printf("D:163  - TLV Network Hash envoyé");
-			}
+			
 		}
 	}
+
+	return 1;
 	
 	
 }
