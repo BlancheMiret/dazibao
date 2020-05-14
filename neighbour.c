@@ -1,4 +1,3 @@
-
 #include <time.h>
 #include <stdio.h>
 #include <string.h>
@@ -17,7 +16,7 @@ int add_neighbour(struct neighbour *neighbour_table, struct sockaddr_storage *ke
 	while(neighbour_table[i].exists && i < NBMAX) i++;
 
 	if (i == NBMAX) {
-		perror("N:20  - Already 15 neighbour.\n");
+		perror("Already 15 neighbour.\n");
 		return -1;
 	}
 
@@ -76,7 +75,7 @@ int sweep_neighbour_table(struct neighbour *neighbour_table) {
 	struct timeval tp;
 	if (gettimeofday(&tp, NULL) < 0) {
 		perror("gettimeofday");
-		return -1;
+		exit(1);
 	}
 
 	int nb_deleted = 0;

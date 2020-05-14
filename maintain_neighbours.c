@@ -26,9 +26,6 @@ int compare_addr(struct in6_addr *IP1, struct in6_addr *IP2) {
 //Fonction qui vérifie les conditions d'ajout d'un voisin de la partie 4.2 avant de l'ajouter
 void update_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 from){
 
-	int rc;
-
-
 	//Si on a moins de 15 voisins et find_neighbour renvoie -1 alors le voisin n'existe pas et il faut l'ajouter
 	if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) < 15) {
 
@@ -36,7 +33,7 @@ void update_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 fr
 	
 		//Affichage de la table de voisins :
 		if(DEBUG){
-			
+
 			printf("[DEBUG] Nombre voisins dans table des voisins : %d\n", get_nb_neighbour(peer_state->neighbour_table));
 			printf("[DEBUG] ---------- AFFICHAGE DE LA TABLE DES VOISINS ----------\n");
 			display_neighbour_table(peer_state->neighbour_table);
