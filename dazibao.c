@@ -124,6 +124,7 @@ void handle_alarm(int sig) {
 
 
 
+// ---- Initialise les données et retourne la structure pstate_t
 
 struct pstate_t * peer_state_init(){
 
@@ -157,12 +158,9 @@ struct pstate_t * peer_state_init(){
 }
 
 
-/************ Ajout du premier voisin permanent ************/ 
 
-//Gérer le cas où on arrive pas à trouver/ajouter un voisin permanent
+// ---- Récupère les addresses du voisin permanent et les ajoute dans la table de voisins
 
-//Ajouter un voisin permanent
-//Initialiser la socker
 int initialization(char * argv[],struct pstate_t * peer_state){
 
 /******** paramètres réseaux ********/
@@ -186,7 +184,7 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 		exit(1);
 	}
 
-// Initialisation de la socket
+
 	struct addrinfo *ap;
 
 
@@ -249,6 +247,8 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 
 }
 
+// ---- Ajoute d'options et paramétrage de la socket
+
 int socket_parameters(int sockfd){
 
 	//int sockfd;
@@ -292,7 +292,7 @@ int socket_parameters(int sockfd){
 	} 
 
 
-/* Parametrage pour que la socket soit en mode non bloquant */
+/* Paramétrage pour que la socket soit en mode non bloquant */
 
 	rc = fcntl(sockfd, F_GETFL);
 	if(rc < 0) {
@@ -311,6 +311,8 @@ int socket_parameters(int sockfd){
 
 
 /* --------------- INONDATION ---------------------*/
+
+// ---- Boucle principale du programme pour gérer la reception et envoi des TLVs
 
 void event_loop(struct pstate_t * peer_state, int sockfd){
 
