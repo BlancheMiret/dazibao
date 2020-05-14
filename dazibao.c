@@ -321,7 +321,7 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 				}
 
 				//On vérifie si l'entête est incorrecte
-				if(check_datagram_header(recvMsg) == 1) {
+				if(check_datagram_header(recvMsg)) {
 
 					char IP[INET6_ADDRSTRLEN];
 					inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&from)->sin6_addr), IP, INET6_ADDRSTRLEN);
@@ -338,6 +338,9 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 
 					if(get_nb_neighbour(peer_state->neighbour_table)< 15){
 						struct dtg_t *dtg = unpack_dtg(recvMsg, rc);
+						
+						if(dtg == NULL) continue;
+						
 						//print_dtg(dtg);
 						//print_dtg_short(dtg,peer_state);
 						print_dtg_short(dtg);
