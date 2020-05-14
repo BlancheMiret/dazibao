@@ -29,6 +29,9 @@
 
 #define SIZE 1024
 
+//Comment afficher le mode debug dans les autres modules via une variable globale??
+//extern int debug; dans un fichier include.h par exemple qu'on inclut partout?
+int DEBUG = 0;
 
 //variable globale pour notifier la capture d'un signal
 volatile sig_atomic_t print_flag = false;
@@ -72,8 +75,6 @@ struct pstate_t * peer_state_init(){
 
 
 }
-
-
 
 
 /************ Ajout du premier voisin permanent ************/ 
@@ -234,18 +235,25 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 		if (print_flag) {
 
 
-			printf("D:297 --- TIMEOUT !! (20 secondes) --- \n");
+		if(DEBUG) printf("[DEBUG] --- 20 secondes se sont écoulées ! --- \n");
 
-			sweep_neighbour_table(peer_state->neighbour_table);
-
-			send_network_hash(sockfd, peer_state);
+			rc=sweep_neighbour_table(peer_state->neighbour_table);
 
 			//display_neighbour_table(peer_state->neighbour_table);
-			printf("D:302 - Sweeptable, il reste %d voisins.\n", get_nb_neighbour(peer_state->neighbour_table));
+			if(DEBUG){
+				printf("[DEBUG] sweep_neighbour_table, il reste %d voisins.\n", get_nb_neighbour(peer_state->neighbour_table));
+				printf("[DEBUG] Nombre de voisins supprimés: %d\n", rc);
+			
+
+			}
+
+			//ENVOI D'UN TLV NETWORK HASH
+			rc=send_network_hash(sockfd, peer_state);
+
+			if(DEBUG == 1 && rc == 1) printf("[DEBUG] TLV Network Hash envoyé");
 
 			//ENVOI D'UN TLV NEIGHBOUR REQUEST
-			//Si la table contient au moins de 5 voisins,on envoie d'un TLV neighbour request à un voisin tiré au hasard 
-
+			//Si la table contient moins de 5 voisins,on envoie d'un TLV neighbour request à un voisin tiré au hasard 
 			if(get_nb_neighbour(peer_state->neighbour_table)< 5 && get_nb_neighbour(peer_state->neighbour_table) > 0 ){
 
 				send_neighbour_req(sockfd, peer_state);
@@ -265,7 +273,6 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 		socklen_t from_len = sizeof(from);
 		char recvMsg[SIZE];
 		memset(recvMsg, '\0', SIZE);
-
 
 
 		//timeout = 50 secondes 
@@ -314,8 +321,10 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 
 					//Si l'émetteur n'est pas présent et si la table de voisins contient déjà 15 entrées
 					if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) == -1 && get_nb_neighbour(peer_state->neighbour_table) == 15){
-
-						printf("La table de voisin contient 15 entrées, le paquet est ignoré!\n");
+						
+						if(DEBUG){
+							printf("La table de voisin contient 15 entrées, le paquet est ignoré!\n");
+						}
 
 					}
 
@@ -355,6 +364,12 @@ int main(int argc, char * argv[]) {
 
 	}
 
+	if(strcmp (argv[3],"debug") == 0){
+       DEBUG =1;
+       //printf("DEBUG value= %d\n", debug );
+   }
+
+
 	int rc;
 
 // ----- initialisation données -----
@@ -393,7 +408,7 @@ int main(int argc, char * argv[]) {
 
 	else{
 
-		printf("Node state envoyé!!! \n");
+		printf("Node state envoyé! \n");
 	}
 
 // -- Partie maintenance de la table de voisins & inondation -- 
