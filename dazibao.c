@@ -36,7 +36,7 @@ int DEBUG = 0;
 volatile sig_atomic_t print_flag = false;
 
 
-//Gestionnaire de signal
+
 void handle_alarm(int sig); 
 
 struct pstate_t * peer_state_init();
@@ -127,6 +127,8 @@ void handle_alarm(int sig) {
 // ---- Initialise les données et retourne la structure pstate_t
 
 struct pstate_t * peer_state_init(){
+
+	if(DEBUG) printf("[DEBUG] Initialisation des données...\n");
 
 	struct pstate_t *peer_state = malloc(sizeof(struct pstate_t));
 	memset(peer_state, 0, sizeof(struct pstate_t));
@@ -251,6 +253,7 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 
 int socket_parameters(int sockfd){
 
+	if(DEBUG) printf("[DEBUG] Paramétrage de la socket \n");
 	//int sockfd;
 	int rc;
 
@@ -404,7 +407,7 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 
 				else {
 					printf("***************************************************\n");
-					printf("D:361 ------- Message Reçu ! --------\n");
+					printf("------- Message Reçu ! --------\n");
 				}
 
 				//On vérifie si l'entête est incorrecte
@@ -412,7 +415,7 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 
 					char IP[INET6_ADDRSTRLEN];
 					inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&from)->sin6_addr), IP, INET6_ADDRSTRLEN);
-					printf("D:373 : - Le message provient de l'IP : %s\n", IP);
+					printf("- Le message provient de l'IP : %s\n", IP);
 
 					//Si l'émetteur n'est pas présent et si la table de voisins contient déjà 15 entrées
 					if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) == -1 && get_nb_neighbour(peer_state->neighbour_table) == 15){
