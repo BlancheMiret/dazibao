@@ -92,20 +92,24 @@ int main(int argc, char * argv[]) {
 
 // ----- Premier TLV à envoyer au voisin permanent -----
 
-	struct sockaddr_storage permanent_neighbour = peer_state->neighbour_table[0].socket_addr;
 
-//Envoi du paquet Node State
-	rc = sendto(sockfd, datagram, datagram_length, 0, (const struct sockaddr*)&permanent_neighbour, sizeof(struct sockaddr_in6));
+	//Envoi du paquet Node State à toutes les adresses du voisin permanent
+	for (int i = 0; i < NBMAX; i++) {
+		if (peer_state->neighbour_table[i].exists && peer_state->neighbour_table[i].permanent == 1) {
+			rc = sendto(sockfd, datagram, datagram_length, 0, (const struct sockaddr*)&peer_state->neighbour_table[i].socket_addr, sizeof(struct sockaddr_in6));
+			if (rc == -1) {
+				perror("sendto() error ");
+				exit(1);
+			}
+			else{
 
-	if (rc == -1) {
-		perror("sendto() error");
-		exit(2);
+				printf("Node state envoyé! \n");
+			}
+			
+		}
 	}
 
-	else{
 
-		printf("Node state envoyé! \n");
-	}
 
 // -- Partie maintenance de la table de voisins & inondation -- 
 	event_loop(peer_state,sockfd);
