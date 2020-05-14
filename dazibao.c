@@ -29,6 +29,8 @@
 
 #define SIZE 1024
 
+//IMPORTANT: revoir la partie gestion d'erreurs et le timeout de select
+
 //Comment afficher le mode debug dans les autres modules via une variable globale??
 //extern int debug; dans un fichier include.h par exemple qu'on inclut partout?
 int DEBUG = 0;
