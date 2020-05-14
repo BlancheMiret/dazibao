@@ -33,7 +33,7 @@
 int DEBUG = 0;
 
 //variable globale pour notifier la capture d'un signal
-volatile sig_atomic_t print_flag = false;
+volatile sig_atomic_t alarm_val = false;
 
 
 
@@ -119,7 +119,7 @@ int main(int argc, char * argv[]) {
 
 //Gestionnaire de signal
 void handle_alarm(int sig) {
-	print_flag = true;
+	alarm_val = true;
 }
 
 
@@ -330,7 +330,7 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 	while(1){
 
 		//Vérifier chaque 20 secondes si un voisin transitoire n'a pas émis de paquet depuis 70s
-		if (print_flag) {
+		if (alarm_val) {
 
 
 		if(DEBUG) printf("[DEBUG] --- 20 secondes se sont écoulées ! --- \n");
@@ -358,7 +358,7 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 
 			}
 
-			print_flag = false;
+			alarm_val = false;
 			alarm(20);
 		}
 
