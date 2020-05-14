@@ -2,8 +2,8 @@
 #define __DATA_MANAGER_H__
 
 #include <string.h>
-#include <stdio.h> //perror, snprintf
-#include <stdlib.h> //exit
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <glib.h>
 #include <glib/gprintf.h>
@@ -12,42 +12,48 @@
 
 #include "hash.h"
 
-// KEY = uint64_t qui est le node_id
+// -------------------------------- STRUCTURE ---------------------------------
 
-// VALUE : struct data
+// KEY = uint64_t node_id
+
+// VALUE : structure des valeurs utilisées dans la hashtable
 struct data_t {
-	uint16_t	seq_no; // <-- STOCKÉ EN ORDRE RÉSEAU !!!!! ????
+	uint16_t	seq_no; // network order
 	char		data[192]; 
-	char		node_hash[16]; // <-- pas obligé de le recalculer à chaque fois tiens...
+	char		node_hash[16];
 };
 
-// table des données n'a rien à voir avec la table des voisins
 
-// ATTENTION, PENSER À METTRE SA PROPRE DONNÉE DANS LA TABLE DES DONNÉES AU TOUT DÉBUT DU PROGRAMME
+// --------------------------------- CREATION ---------------------------------
 
-/*
-BESOINS :
-- À la réception d'un Node Hash décrivant le noeud d'Id i avec le hash h : si hash sont identiques, rien à faire
-		--> donc besoin de comparer les hash. 
-		ATTENTION, si hash sont différents OU si Id i n'existe pas dans la table (différencier le comportement de glib ?)  répondre par un Node State Request
-- À la réception d'un Node state
-		- Comparer les hash, si identiques rien à faire (même fonction qu'avant) (on se demande bien pourquoi revoir)
-		- Sinon
-			- Si id du node state est notre propre id (DAZI) : selon rapport entre les séquences (GET ET GREATER), incrémenter notre numéro de séquence (UPDATE_SELF) ou ne rien faire // <-- dazi qui gère check node_id ??
-			- Si id autre noeud
-					- si pas d'entrée (ATTENTION GLIB) ou si s > s' : élimination ancienne donnée, ajout de la nouvelle (voir avec glib si il réécrit)
-					- sinon rien à faire
-
-*/
-
+/* Renvoie un pointeur vers une nouvelle GHashTable */
 void *create_data_table();
-int get_data_table_len(GHashTable *data_table);
+
+// --------------------------------- ECRITURE ---------------------------------
+
+/* Ajoute un élément à data_table, de clé node_id, de valeur struct data_t contenant les champ seq_no, data, et le hash_node est calculé */
 int add_data(GHashTable *data_table, uint64_t node_id, uint16_t seq_no, char data[192]);
-void print_data(GHashTable *data_table, uint64_t node_id);
-uint16_t get_seq_no(GHashTable *data_table, uint64_t node_id);
-int is_greater_than(uint16_t seq_no1, uint16_t seq_no2);
+
+/* Met à jour le champ seq_no de la valeur associée à self_id dans data_table par new_seqno */
 int update_self_seq_num(GHashTable *data_table, uint64_t self_id, uint16_t new_seqno);
+
+// ---------------------------------- LECTURE ---------------------------------
+
+/* Renvoie le nombre d'éléments dans data_table */
+int get_data_table_len(GHashTable *data_table);
+
+/* Renvoie le numéro de séquence, en ordre réseau, de la valeur associée à la clé node_id dans data_table*/
+uint16_t get_seq_no(GHashTable *data_table, uint64_t node_id);
+
+/* Renvoie 1 si seq_no1 >> seq_no2, 0 sinon */
+int is_greater_than(uint16_t seq_no1, uint16_t seq_no2);
+
+/* Renvoie 1 si la valeur existe, 0 sinon */
 int data_exists(GHashTable *data_table, uint64_t node_id);
+
+// -------------------------------- AFFICHAGE ---------------------------------
+
+void print_data(GHashTable *data_table, uint64_t node_id);
 void display_data_table(GHashTable *data_table);
 
 #endif

@@ -1,22 +1,11 @@
 #include "tlv_manager.h"
 
 
-// ****************************************************************************
-// --------------------------- NVLLES FONCTIONS -------------------------------
-
-/*
-Fonctions
-- create pour chaque type de tlv, prend paramètres, renvoit un pointeur vers un struct tlv DONE
-(- un fonction build tlv -> char )
-- une fonction build_dtg qui prend tlv + tlv + tlv... -> dtg -> char dDONE 
-
-- une fonction char -> dtg qui renvoit un pointeur vers un dtg tout frais et liste chainée de struct tlv DONE
---> ensuite switch sur tlv->type (ps, les tlv reçus peuvent se traiter indépendamment les uns des autres )
-*/
-
 // ----------------------------------------------------------------------------
 // -------------------------- CHECK DATAGRAME HEADER --------------------------
 
+/* Prend un paquet udp, renvoie 1 si les 4 premiers octets ont des valeurs corrects
+Vérifie si magic = 95, version = 1, et que la longeur annoncée ne dépasse pas la taille du paquet reçu */
 int check_datagram_header(char *dtg) {
 
 	uint8_t magic;
@@ -33,9 +22,8 @@ int check_datagram_header(char *dtg) {
 }
 
 // ----------------------------------------------------------------------------
-// -------------------------- FONCTIONS CREATION TLV --------------------------
+// ------------------------------- CREATION TLV -------------------------------
 
-// Fonction interne
 void *new_tlv() {
 	struct tlv_t *tlv = malloc(sizeof(struct tlv_t));
 	memset(tlv, 0, sizeof(struct tlv_t));
@@ -63,7 +51,7 @@ void *new_neighbour_request(){
 	return tlv;
 }
 
-/* port en format RÉSEAU DANS LES PARAMÈTRES*/
+/* Port est en format réseau dans les paramètres */
 void *new_neighbour(struct in6_addr IP, in_port_t port) {
 	struct tlv_t *tlv = new_tlv();
 	tlv->type = 3;
@@ -98,7 +86,7 @@ void *new_network_state_request() {
 	return tlv;
 }
 
-/* seqno en format RÉSEAU DANS LES PARAMÈTRES*/
+/* Seqno est en format réseau dans les paramètres */
 void *new_node_hash(uint64_t node_id, uint16_t seqno, char nodehash[16]) {
 	struct tlv_t *tlv = new_tlv();
 	tlv->type = 6;
@@ -160,10 +148,10 @@ void *new_warning(char *message) {
 }
 
 // ----------------------------------------------------------------------------
-// ---------------------- FONCTIONS CREATION DATAGRAMME -----------------------
+// --------------------------- CREATION DATAGRAMME ----------------------------
 
-// prend un pointeur vers un tlv, une adresse, et écrit le tlv en mode données concaténées à l'adresse donnée
-// ET renvoie un pointeur vers l'adresse de la fin de l'écriture, pour le prochain tlv à écrire
+/* Prend un tlv et l'écrit en concaténant ses données à l'adresse addr 
+Renvoie l'adresse de la fin de l'écriture du tlv */
 void *write_tlv(struct tlv_t *tlv, char *addr) {
 	memcpy(addr, &tlv->type, 1);
 	if (tlv->type != 0) memcpy(addr + 1, &tlv->length, 1);
@@ -234,8 +222,7 @@ void *init_dtg(size_t size_dtg) {
 }
 
 
-// prend suite de tlv et en fait un datagramme prêt à envoyer sur le réseau
-void *build_tlvs_to_char(int *size_dtg, int nbtlv, ...) { // <----- free les tlv au passage par exemple ? 
+void *build_tlvs_to_char(int *size_dtg, int nbtlv, ...) { 
 	va_list valist;
 	*size_dtg = 0; //sans compter le header
 	struct tlv_t *tlv;
@@ -250,7 +237,6 @@ void *build_tlvs_to_char(int *size_dtg, int nbtlv, ...) { // <----- free les tlv
 	}
 
 	*size_dtg += DTG_HEADER;
-	//printf("Total size should be : %d\n", *size_dtg); // <--- DEBUG
 
 	// ---- CRÉER CHAINE DE CARACTÈRE ET INITIALISER LE HEADER
 	char *dtg = init_dtg(*size_dtg);
@@ -268,12 +254,14 @@ void *build_tlvs_to_char(int *size_dtg, int nbtlv, ...) { // <----- free les tlv
 }
 
 
+
+/* Prend une liste chaînée de tlv et construit un datagramme prêt à envoyer sur le réseau.
+Le dépassement de 1024 octets n'est pas vérifié, il est nécessaire de le vérifier avant d'utiliser la fonction. 
+La taille du datagramme finale est inscrite à l'adresse size_dtg */
 void *build_tlvs_to_char2(int *size_dtg, int nbtlv, struct tlv_t *tlv_list) { // <-- Cf Test dans test_tlv_manager
 	struct tlv_t *tlv = tlv_list;
-	*size_dtg = 0; //sans compter le header
+	*size_dtg = 0; 
 
-
-	// - CALCULER TAILLE FINALE DU TAGAGRAMME ET L'ÉCRIRE À L'ADRESSE size_dtg;
 	while(tlv != NULL) {
 		if(tlv->type != 0) *size_dtg += tlv->length + TLV_HEADER;
 		else *size_dtg += 1;
@@ -281,12 +269,8 @@ void *build_tlvs_to_char2(int *size_dtg, int nbtlv, struct tlv_t *tlv_list) { //
 	}
 
 	*size_dtg += DTG_HEADER;
-	//printf("Total size should be : %d\n", *size_dtg); // <--- DEBUG
-
-	// ---- CRÉER CHAINE DE CARACTÈRE ET INITIALISER LE HEADER
 	char *dtg = init_dtg(*size_dtg);
 
-	// ---- ÉCRIRE CONTENU DES TLV UN PAR UN
 	char *begin_tlv = dtg + DTG_HEADER;
 	tlv = tlv_list;
 	while(tlv != NULL) {
@@ -297,8 +281,9 @@ void *build_tlvs_to_char2(int *size_dtg, int nbtlv, struct tlv_t *tlv_list) { //
 }
 
 // ----------------------------------------------------------------------------
-// ---------------------- FONCTIONS DÉBALLAGE DATAGRAMME ----------------------
+// ---------------------------- UNPACK DATAGRAMME -----------------------------
 
+/* Libère la mémoire de chaque TLV de la liste chainée de dtg */
 void free_tlvs_of_dtg(struct dtg_t *dtg) {
 	struct tlv_t *tlv = dtg->tlv_list;
 	while(tlv != NULL) {
@@ -308,8 +293,10 @@ void free_tlvs_of_dtg(struct dtg_t *dtg) {
 	}
 }
 
-// Prend l'adresse d'un buffer, un adresse vers un tlv (mémoire allouée) et construire un tlv
-// selon contenu du buffer
+
+/* Prend un pointeur vers une adresse d'un paquet reçu et construit une struct TLV.
+Renvoie une erreur si la taille annoncée du TLV dépasse la taille restante du paquet.
+Renvoie un pointeur vers cette structure. */
 int unpack_next_tlv(char *from, struct tlv_t *tlv, size_t size_left_dtg) {
 
 	if (size_left_dtg < TLV_HEADER) return -1;
@@ -372,12 +359,12 @@ int unpack_next_tlv(char *from, struct tlv_t *tlv, size_t size_left_dtg) {
 			printf("Wrong type of tlv in unpack_next_tlv\n");
 			exit(1);
 	}
-
 	return 0;
-
 }
 
-// prend un datagramme sous forme 
+
+/* Prend un paquet reçu sur le réseau et constuit une struct dtgt_t contenant la liste chaînée de TLV du paquet 
+Renvoie un pointeur vers cette structure */
 void *unpack_dtg(char *buf, int size_dtg) {
 
 	if(size_dtg < DTG_HEADER) return NULL;
@@ -394,23 +381,13 @@ void *unpack_dtg(char *buf, int size_dtg) {
 		return NULL;
 	}
 
-	//uint16_t size = ntohs(dtg->body_length);
-	//printf("DEBUG SIZE %"PRIu16"\n", size);
-
-	// lire un tlv,
-	// l'ajouter à la liste
-	// bouger le curseur de la liste de 1
-	// si pas fin du datagramme, recommencer boucle
-
 	int decount = size_dtg - DTG_HEADER;
-	//printf("DEBUG DECOUNT %d\n", decount);
 	buf = buf + DTG_HEADER;
 	struct tlv_t **tlv = &(dtg->tlv_list);
 
 	while(decount != 0) {
 		if (buf[0] == 0) {
-			// printf("Yes, buf equal zero\n"); // <--- DEBUG
-			buf += 1; // <---- ignore les pad 1
+			buf += 1;
 			decount -= 1;
 			continue;
 		}
@@ -423,7 +400,7 @@ void *unpack_dtg(char *buf, int size_dtg) {
 		if (unpack_next_tlv(buf, *tlv, decount) < 0) {
 			free_tlvs_of_dtg(dtg);
 			free(dtg);
-			return NULL; // <--- besoin de free tous les tlv de dtg d'abord.
+			return NULL;
 		}
 
 		decount = decount - (*tlv)->length - TLV_HEADER;
@@ -431,51 +408,52 @@ void *unpack_dtg(char *buf, int size_dtg) {
 		tlv = &((*tlv)->next); 
 
 	}
-
 	return dtg;
 }
 
+
 // ----------------------------------------------------------------------------
-// -------------------------- FONCTIONS D'AFFICHAGHE --------------------------
+// -------------------------------- AFFICHAGHE --------------------------------
 
 
 void print_IP_addr(struct in6_addr *sin6_addr) {
 	char buf[INET6_ADDRSTRLEN];
-	inet_ntop(AF_INET6, sin6_addr, buf, INET6_ADDRSTRLEN); // <---- DONC ICI CONSIDÉRÉ FORMAT RÉSEAU DANS LA STRUCT
+	inet_ntop(AF_INET6, sin6_addr, buf, INET6_ADDRSTRLEN); 
 	printf("IP address is : %s\n", buf);
 }
-/*
-void print_hash(char hash[16]) { // <---- code de Dao je crois, à revoir...
-	for (int i = 0; i < 16; i++) {
-        printf("%02x", hash[i]);
-    }
-    printf("\n");
-}
-*/
+
+
 void print_node_id(uint64_t node_id) {
 	printf("Node id is : %"PRIu64"\n", node_id);
 }
 
-void print_seqno(uint16_t seqno) { // <---- stocké en format host dans le tlv 
-	printf("Seq num is : %"PRIu16, ntohs(seqno)); // <------------- ICI CONSIDÉRÉ FORMAT RÉSEAU DANS LA STRUCT 
+
+void print_seqno(uint16_t seqno) { 
+	printf("Seq num is : %"PRIu16, ntohs(seqno));
 	printf("\n");
 }
+
 
 void print_tlv_header(struct tlv_t *tlv) {
 	printf("TLV type : %d\n", tlv->type);
 	printf("TLV length : %d\n", tlv->length);
 }
 
-void print_tlv(struct tlv_t *tlv) {
+
+void print_tlv(struct tlv_t *tlv, int short_version) {
 	if(tlv == NULL) return;
 
 	switch(tlv->type) {
 		case 0:
-			print_tlv_header(tlv);
+			if(!short_version) print_tlv_header(tlv);
 			printf("This is a Pad1, nothing to display.\n");
 			break;
 
 		case 1:
+			if (short_version) {
+				printf("PadN\n");
+				break ;
+			}
 			printf("	 ----------  TLV PADN  --------\n");
 			print_tlv_header(tlv);
 			for(int i = 0; i < tlv->length; i++) printf("0");
@@ -483,18 +461,30 @@ void print_tlv(struct tlv_t *tlv) {
 			break;
 
 		case 2:
+			if (short_version) {
+				printf("Neigbhour Request\n");
+				break;
+			}
 			printf("	 ---  TLV NEIGBOUR REQUEST  ---\n");
 			print_tlv_header(tlv);
 			break;
 
 		case 3:
+			if (short_version) {
+				printf("Neighbour\n");
+				break;
+			}
 			printf("	 -------  TLV NEIGHBOUR  ------\n");
 			print_tlv_header(tlv);
 			print_IP_addr(&(tlv->body.neighbour_body->iPv6_addr));
-			printf("Port is : %d\n", ntohs(tlv->body.neighbour_body->port)); // <----- ICI CONSIDÉRÉ FORMAT RÉSEAU DANS LA STRUCT
+			printf("Port is : %d\n", ntohs(tlv->body.neighbour_body->port)); 
 			break;
 
 		case 4:
+			if (short_version) {
+				printf("Network Hash\n");
+				break;
+			}
 			printf("	 -----  TLV NETWORK HASH  -----\n");
 			print_tlv_header(tlv);
 			printf("Network hash is : ");
@@ -502,11 +492,19 @@ void print_tlv(struct tlv_t *tlv) {
 			break;
 			
 		case 5:
+			if (short_version) {
+				printf("Network State Request\n");
+				break;
+			}
 			printf("	 --  TLV NET. STATE REQUEST  --\n");
 			print_tlv_header(tlv);
 			break;
 
 		case 6:
+			if (short_version) {
+				printf("Node Hash\n");
+				break;
+			}
 			printf("	 -------  TLV NODE HASH  ------\n");
 			print_tlv_header(tlv);
 			print_node_id(tlv->body.nodehash_body->node_id);
@@ -516,12 +514,20 @@ void print_tlv(struct tlv_t *tlv) {
 			break;
 
 		case 7:
+			if (short_version) {
+				printf("Node State Request\n");
+				break;
+			}
 			printf("	 --  TLV NODE STATE REQUEST  --\n");
 			print_tlv_header(tlv);
 			print_node_id(tlv->body.nodestatereq_body->node_id);
 			break;
 
 		case 8:
+			if (short_version) {
+				printf("Node State\n");
+				break;
+			}
 			printf("	 ------  TLV NODE STATE  ------\n");
 			print_tlv_header(tlv);
 			print_node_id(tlv->body.nodestate_body->node_id);
@@ -532,6 +538,11 @@ void print_tlv(struct tlv_t *tlv) {
 			break;
 
 		case 9:
+			if (short_version) {
+				printf("Warning\n");
+				printf("Message is : %s\n", tlv->body.warning_body->message);
+				break;
+			}
 			printf("	 ----------  WARNING  ---------\n");
 			print_tlv_header(tlv);
 			printf("Message is : %s\n", tlv->body.warning_body->message);
@@ -544,60 +555,14 @@ void print_tlv(struct tlv_t *tlv) {
 	}
 }
 
-void print_tlv_short(struct tlv_t *tlv) {
-		if(tlv == NULL) return;
-
-	switch(tlv->type) {
-		case 0:
-			printf("This is a Pad1, nothing to display.\n");
-			break;
-
-		case 1:
-			printf("PadN\n");
-			break;
-
-		case 2:
-			printf("Neigbhour Request\n");
-			break;
-
-		case 3:
-			printf("Neighbour\n");
-			break;
-
-		case 4:
-			printf("Network Hash\n");
-			break;
-			
-		case 5:
-			printf("Network State Request\n");
-			break;
-
-		case 6:
-			printf("Node Hash\n");
-			break;
-
-		case 7:
-			printf("Node State Request\n");
-			break;
-
-		case 8:
-			printf("Node State\n");
-			break;
-
-		case 9:
-			printf("Warning\n");
-			printf("Message is : %s\n", tlv->body.warning_body->message);
-			break;
-
-		default :
-			printf("This is not a TLV.\n");
-			exit(1);
-
-	}
-}
 
 void print_dtg_short(struct dtg_t *dtg) {
-	//printf("***************************************************\n");
+	print_dtg(dtg, 1);
+}
+
+
+void print_dtg(struct dtg_t *dtg, int short_version) {
+
 	printf("Magic : %"PRIu8"\n", dtg->magic);
     printf("Version : %"PRIu8"\n", dtg->version);
     uint16_t body_length = ntohs(dtg->body_length);
@@ -605,27 +570,8 @@ void print_dtg_short(struct dtg_t *dtg) {
     printf("Nb tlv in dtg : %d\n", dtg->nb_tlv);
     struct tlv_t *tlv = dtg->tlv_list;
     for(int i = 0; i < dtg->nb_tlv; i ++) {
-    	print_tlv_short(tlv);
+    	if (short_version) print_tlv(tlv, 1);
+    	else print_tlv(tlv, 0);
     	tlv = tlv -> next; 
     }
-    //printf("***************************************************\n");
 }
-
-void print_dtg(struct dtg_t *dtg) {
-	printf("***************************************************\n");
-	printf("Magic : %"PRIu8"\n", dtg->magic);
-    printf("Version : %"PRIu8"\n", dtg->version);
-    uint16_t body_length = ntohs(dtg->body_length);
-    printf("Body_Length : %"PRIu16"\n", body_length);
-    printf("Nb tlv in dtg : %d\n", dtg->nb_tlv);
-    struct tlv_t *tlv = dtg->tlv_list;
-    for(int i = 0; i < dtg->nb_tlv; i ++) {
-    	print_tlv(tlv);
-    	tlv = tlv -> next; 
-    }
-    printf("***************************************************\n");
-}
-
-
-
-
