@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <inttypes.h>
 
 #include "hash.h"
 #include "data_manager.h"
+#include <arpa/inet.h>
 
 #define TWOPOWSIXTEEN 65536
 

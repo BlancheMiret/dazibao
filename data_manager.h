@@ -3,7 +3,7 @@
 
 #include <glib.h>
 #include <glib/gprintf.h>
-
+#include <inttypes.h>
 // -------------------------------- STRUCTURE ---------------------------------
 
 // KEY = uint64_t node_id

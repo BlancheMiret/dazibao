@@ -1,5 +1,15 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <unistd.h>
+#include <errno.h>
+#include <netdb.h>
+#include <stdint.h>
+#include <inttypes.h>
+#include <net/if.h>
 #include "maintain_neighbours.h"
-
+#include "tlv_manager.h"
 
 
 //Compare deux adresses ipv6, si ils sont égaux retourne 0
