@@ -1,27 +1,7 @@
 #include "maintain_neighbours.h"
 
 
-//Fonction qui envoie un TLV neighbour request à un voisin tiré au hasard
-void send_neighbour_req(int socket, struct pstate_t * peer_state){
 
-	struct neighbour * neighbour_choosen = pick_neighbour(peer_state->neighbour_table);
-	
-	char IP2[INET6_ADDRSTRLEN];
-	inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&neighbour_choosen->socket_addr)->sin6_addr), IP2, INET6_ADDRSTRLEN);
-
-	struct tlv_t *neighbour_req = new_neighbour_request();
-	int datagram_length1;
-	char *datagram1 = build_tlvs_to_char(&datagram_length1, 1, neighbour_req);
-	int status = sendto(socket, datagram1, datagram_length1, 0, (const struct sockaddr*)&neighbour_choosen->socket_addr, sizeof(struct sockaddr_in6));
-	if (status == -1) {
-		perror("sendto() error");
-		//exit(2);
-	}
-	else {
-		printf("D:75  - TLV Neighbour Request Envoyé à l'adresse IP : %s\n", IP2);
-	}
-
-}
 //Compare deux adresses ipv6, si ils sont égaux retourne 0
 
 int compare_addr(struct in6_addr *IP1, struct in6_addr *IP2) {
@@ -70,6 +50,30 @@ void maintain_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 
 
 }
 
+
+//Fonction qui envoie un TLV neighbour request à un voisin tiré au hasard
+void send_neighbour_req(int socket, struct pstate_t * peer_state){
+
+	struct neighbour * neighbour_choosen = pick_neighbour(peer_state->neighbour_table);
+	
+	char IP2[INET6_ADDRSTRLEN];
+	inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&neighbour_choosen->socket_addr)->sin6_addr), IP2, INET6_ADDRSTRLEN);
+
+	struct tlv_t *neighbour_req = new_neighbour_request();
+	int datagram_length;
+	char *datagram = build_tlvs_to_char(&datagram_length, 1, neighbour_req);
+	int status = sendto(socket, datagram, datagram_length, 0, (const struct sockaddr*)&neighbour_choosen->socket_addr, sizeof(struct sockaddr_in6));
+	if (status == -1) {
+		perror("sendto() error");
+		//exit(2);
+	}
+	else {
+		printf("D:75  - TLV Neighbour Request Envoyé à l'adresse IP : %s\n", IP2);
+	}
+
+}
+
+
 //Fonction pour l'envoi d'un TLV network hash à tous les voisins chaque 20s 
 void send_network_hash(int socket, struct pstate_t * peer_state){
 
@@ -97,3 +101,4 @@ void send_network_hash(int socket, struct pstate_t * peer_state){
 	
 	
 }
+
