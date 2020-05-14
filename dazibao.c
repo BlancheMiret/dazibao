@@ -234,8 +234,13 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 		perror("socket error: ");
 	}
 
-	printf("NOMBRE DE VOISINS  %d\n",get_nb_neighbour(peer_state->neighbour_table));
-	display_neighbour_table(peer_state->neighbour_table);
+	
+	if(DEBUG){
+		printf("NOMBRE DE VOISINS  %d\n",get_nb_neighbour(peer_state->neighbour_table));	
+     	printf("[DEBUG] ---------- AFFICHAGE DE LA TABLE DES VOISINS ----------\n");
+		display_neighbour_table(peer_state->neighbour_table);
+		
+	}
 
 
 	freeaddrinfo(dest_info);
@@ -338,7 +343,7 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 			//ENVOI D'UN TLV NETWORK HASH
 			rc=send_network_hash(sockfd, peer_state);
 
-			if(DEBUG == 1 && rc == 1) printf("[DEBUG] TLV Network Hash envoyé");
+			if(DEBUG == 1 && rc == 1) printf("[DEBUG] ---> TLV NETWORK HASH envoyé à tous les voisins!\n");
 
 			//ENVOI D'UN TLV NEIGHBOUR REQUEST
 			//Si la table contient moins de 5 voisins,on envoie d'un TLV neighbour request à un voisin tiré au hasard 

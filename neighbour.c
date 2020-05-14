@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "neighbour.h"
+#include "debug.h"
 
 // ----------------------------------------------------------------------------
 // --------------------------------- ECRITURE ---------------------------------
@@ -30,9 +31,16 @@ int add_neighbour(struct neighbour *neighbour_table, struct sockaddr_storage *ke
 	neighbour_table[i].last_reception = tp;
 	neighbour_table[i].socket_addr = *key;
 
-	char IP2[INET6_ADDRSTRLEN];
-	inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&neighbour_table[i].socket_addr)->sin6_addr), IP2, INET6_ADDRSTRLEN);
-	printf("N:39  - Voisin ajouté. IP : %s\n", IP2);
+	char IP[INET6_ADDRSTRLEN];
+	inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&neighbour_table[i].socket_addr)->sin6_addr), IP, INET6_ADDRSTRLEN);
+
+	if(DEBUG ==1 && perm == 1){
+		printf("[DEBUG] Voisin permanent ajouté. IP : %s\n", IP);
+	}
+	if(DEBUG ==1 && perm == 0){
+		printf("[DEBUG] Voisin transitoire ajouté. IP : %s\n", IP);
+	}
+	
 
 	return 0;
 }

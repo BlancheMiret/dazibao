@@ -3,7 +3,8 @@
 #include "data_manager.h" 
 #include "neighbour.h"
 
-#include "inondation.h" 
+#include "inondation.h"
+#include "debug.h"  
 
 // ----------------------------------------------------------------------------
 // ------------------------------ FREE TLV LIST -------------------------------
@@ -79,7 +80,7 @@ Envoie un network hash tlv à l'adresse IP & numéro de port contenu dans le tlv
 */
 int build_res_neighbour(struct tlv_t *tlv, int sockfd, struct pstate_t *peer_state) {
 	if (tlv->type != 3) {
-		printf("Shouldn't be in build_res_neighbour function.\n");
+		if(DEBUG) printf("Shouldn't be in build_res_neighbour function.\n");
 		return -1; // <-- ??
 	}
 
@@ -116,7 +117,7 @@ Sinon, renvoie un tlv network state request.
 */
 void *build_res_network_hash(struct tlv_t *tlv, struct pstate_t *peer_state) {
 	if (tlv->type != 4) {
-		printf("Shouldn't be in respond_to_network_hash function.\n");
+		if(DEBUG) printf("Shouldn't be in respond_to_network_hash function.\n");
 		return NULL;
 	}
 
@@ -185,7 +186,7 @@ ou que les hash sont différents : renvoie un node state request.
 */
 void *build_res_node_hash(struct tlv_t *tlv, struct pstate_t *peer_state) {
 	if (tlv->type != 6) {
-		printf("Shouldn't be in respond_to_ node_hash function.\n");
+		if(DEBUG) printf("Shouldn't be in respond_to_ node_hash function.\n");
 		return NULL;
 	}
 	struct data_t *value = g_hash_table_lookup(peer_state->data_table, &tlv->body.nodehash_body->node_id);
@@ -203,13 +204,13 @@ void *build_res_node_hash(struct tlv_t *tlv, struct pstate_t *peer_state) {
 /* Retourne un tlv node state. */
 void *build_res_node_state_request(struct tlv_t *tlv, struct pstate_t *peer_state) {
 	if (tlv->type != 7) {
-		printf("Shouldn't be in respond_to_node_state_request function.\n");
+		if(DEBUG) printf("Shouldn't be in respond_to_node_state_request function.\n");
 		return NULL;
 	}
 
 	struct data_t *value = g_hash_table_lookup(peer_state->data_table, &tlv->body.nodestatereq_body->node_id);
 	if (value == NULL) {
-		perror("Data does not exist.");
+		if(DEBUG) perror("Data does not exist.");
 		return NULL;
 	}
 
@@ -227,7 +228,7 @@ Sinon, compare les numéros de séquences, si besoin ajoute ou met à jour la do
 */
 int respond_to_node_state(struct tlv_t *tlv, struct pstate_t *peer_state) {
 	if (tlv->type != 8) {
-		printf("Shouldn't be in respond_to_node_state function.\n");
+		if(DEBUG) printf("Shouldn't be in respond_to_node_state function.\n");
 		return -1;
 	}
 
