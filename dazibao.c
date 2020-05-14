@@ -29,12 +29,92 @@
 
 //IMPORTANT: revoir la partie gestion d'erreurs et le timeout de select
 
-//Comment afficher le mode debug dans les autres modules via une variable globale??
-//extern int debug; dans un fichier include.h par exemple qu'on inclut partout?
+
 int DEBUG = 0;
 
 //variable globale pour notifier la capture d'un signal
 volatile sig_atomic_t print_flag = false;
+
+
+//Gestionnaire de signal
+void handle_alarm(int sig); 
+
+struct pstate_t * peer_state_init();
+
+int initialization(char * argv[],struct pstate_t * peer_state);
+
+int socket_parameters(int sockfd);
+
+void event_loop(struct pstate_t * peer_state, int sockfd);
+
+
+int main(int argc, char * argv[]) {
+
+
+
+	if(argc == 1 || argc == 2){
+       
+       printf("Veuillez préciser l'adresse ou nom du serveur ainsi que le numéro de port\n");
+       printf("Exemple: ./dazibao jch.irif.fr 1212\n" );
+       exit(1);
+
+	}
+
+	if(argc == 4 && strcmp (argv[3],"debug") == 0){
+       DEBUG =1;
+       //printf("DEBUG value= %d\n", debug );
+   }
+
+
+	int rc;
+
+// ----- initialisation données -----
+
+	struct pstate_t * peer_state = peer_state_init();
+
+	char node_hash[16];
+	hash_node(peer_state->node_id, peer_state->num_seq, peer_state->data, node_hash);
+//print_hash(node_hash);
+
+
+// ----------------------------------
+
+
+// ----- initialisation de la socket et ajout du voisin permanent -----
+	int sockfd = initialization(argv,peer_state);
+	socket_parameters(sockfd);
+
+// ----- Construction d'un datagram -- 
+
+	struct tlv_t *node_state = new_node_state(peer_state->node_id, peer_state->num_seq, node_hash, peer_state->data);
+	int datagram_length;
+	char *datagram = build_tlvs_to_char(&datagram_length, 1, node_state);
+
+// ----- Premier TLV à envoyer au voisin permanent -----
+
+	struct sockaddr_storage permanent_neighbour = peer_state->neighbour_table[0].socket_addr;
+
+//Envoi du paquet Node State
+	rc = sendto(sockfd, datagram, datagram_length, 0, (const struct sockaddr*)&permanent_neighbour, sizeof(struct sockaddr_in6));
+
+	if (rc == -1) {
+		perror("sendto() error");
+		exit(2);
+	}
+
+	else{
+
+		printf("Node state envoyé! \n");
+	}
+
+// -- Partie maintenance de la table de voisins & inondation -- 
+	event_loop(peer_state,sockfd);
+
+
+	return 0;
+}
+
+
 
 
 //Gestionnaire de signal
@@ -361,70 +441,4 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 	}
 
 
-}
-
-int main(int argc, char * argv[]) {
-
-
-
-	if(argc == 1 || argc == 2){
-       
-       printf("Veuillez préciser l'adresse ou nom du serveur ainsi que le numéro de port\n");
-       printf("Exemple: ./dazibao jch.irif.fr 1212\n" );
-       exit(1);
-
-	}
-
-	if(argc == 4 && strcmp (argv[3],"debug") == 0){
-       DEBUG =1;
-       //printf("DEBUG value= %d\n", debug );
-   }
-
-
-	int rc;
-
-// ----- initialisation données -----
-
-	struct pstate_t * peer_state = peer_state_init();
-
-	char node_hash[16];
-	hash_node(peer_state->node_id, peer_state->num_seq, peer_state->data, node_hash);
-//print_hash(node_hash);
-
-
-// ----------------------------------
-
-
-// ----- initialisation de la socket et ajout du voisin permanent -----
-	int sockfd = initialization(argv,peer_state);
-	socket_parameters(sockfd);
-
-// ----- Construction d'un datagram -- 
-
-	struct tlv_t *node_state = new_node_state(peer_state->node_id, peer_state->num_seq, node_hash, peer_state->data);
-	int datagram_length;
-	char *datagram = build_tlvs_to_char(&datagram_length, 1, node_state);
-
-// ----- Premier TLV à envoyer au voisin permanent -----
-
-	struct sockaddr_storage permanent_neighbour = peer_state->neighbour_table[0].socket_addr;
-
-//Envoi du paquet Node State
-	rc = sendto(sockfd, datagram, datagram_length, 0, (const struct sockaddr*)&permanent_neighbour, sizeof(struct sockaddr_in6));
-
-	if (rc == -1) {
-		perror("sendto() error");
-		exit(2);
-	}
-
-	else{
-
-		printf("Node state envoyé! \n");
-	}
-
-// -- Partie maintenance de la table de voisins & inondation -- 
-	event_loop(peer_state,sockfd);
-
-
-	return 0;
 }
