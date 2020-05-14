@@ -1,3 +1,9 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <inttypes.h>
+
+#include "hash.h"
 #include "data_manager.h"
 
 #define TWOPOWSIXTEEN 65536

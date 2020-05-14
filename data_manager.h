@@ -1,16 +1,8 @@
 #ifndef __DATA_MANAGER_H__
 #define __DATA_MANAGER_H__
 
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <glib.h>
 #include <glib/gprintf.h>
-#include <inttypes.h>
-#include <arpa/inet.h>
-
-#include "hash.h"
 
 // -------------------------------- STRUCTURE ---------------------------------
 

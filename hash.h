@@ -1,10 +1,6 @@
 #ifndef __HASH_H__
 #define __HASH_H__
 
-#include <openssl/sha.h>
-#include <stdio.h>
-#include <string.h>
-
 /* Cacule SHA256 de value_to_hash et en écrit les 16 premiers octets à l'adresse final_hash */
 int hash(char *value_to_hash, size_t size_value_to_hash, char *final_hash);
 

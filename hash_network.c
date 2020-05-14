@@ -1,4 +1,6 @@
 #include "hash_network.h"
+#include "data_manager.h"
+#include "hash.h"
 
 /* Prend un table trié contenant déjà nb_el éléments et introduit val en conservant le tableau trié*/
 void insert(uint64_t tab[], size_t nb_el, uint64_t *val) {

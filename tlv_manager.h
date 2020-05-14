@@ -1,19 +1,6 @@
 #ifndef TLV_MANAGER_H
 #define TLV_MANAGER_H 
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-
-#include <inttypes.h>
-#include <stdarg.h>
-#include <arpa/inet.h>
-
-#include "hash.h"
-
-
 #define DTG_HEADER 4
 #define TLV_HEADER 2
 
