@@ -6,23 +6,6 @@
 #include "inondation.h"
 #include "debug.h"  
 
-// ----------------------------------------------------------------------------
-// ------------------------------ FREE TLV LIST -------------------------------
-
-/*
-Libère la mémoire de chaque noeud d'une liste chaînée de tlv.
-*/
-void free_tlv_list(struct tlv_t *tlv_list) {
-	struct tlv_t *node = tlv_list;
-	struct tlv_t *temp;
-	while(node != NULL) {
-		temp = node;
-		node = node->next;
-		free(temp);
-	}
-	tlv_list = NULL;
-}
-
 
 // ----------------------------------------------------------------------------
 // ------------------------------ PRINT RESPONSE ------------------------------
@@ -48,8 +31,6 @@ int send_tlv_list(int sockfd, struct sockaddr_in6 *from, size_t size_from, int n
 	printf("Port : %d\n", ntohs(from->sin6_port));
 	printf("---------------------------\n");
 
-
-	free_tlv_list(tlv_list);
 	free(dtg_char);
 	return 0;
 }
@@ -63,12 +44,9 @@ Renvoie un tlv neighbour contenant les informations d'un voisin choisi au hasard
 */
 void *build_res_neighbour_req(struct pstate_t *peer_state) {
 
-	struct neighbour *n = pick_neighbour(peer_state->neighbour_table); // <--- fonction à modifier, renvoie int !!
-	
+	struct neighbour *n = pick_neighbour(peer_state->neighbour_table); 
 	struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&n->socket_addr;
-	struct tlv_t *tlv_neighbour = new_neighbour(sin6->sin6_addr,sin6->sin6_port);
-
-	return tlv_neighbour;
+	return new_neighbour(sin6->sin6_addr,sin6->sin6_port);
 }
 
 
@@ -103,6 +81,9 @@ int build_res_neighbour(struct tlv_t *tlv, int sockfd, struct pstate_t *peer_sta
 		perror("Send to");
 		return rc; // ??
 	}
+
+	free_tlv(tlv_to_send);
+	free(dtg_char);
 
 	return 0;
 }
@@ -160,6 +141,7 @@ int respond_to_network_state_req(int sockfd, struct sockaddr_in6 *from, size_t s
 			printf("Envoi de 35 Node Hash : \n");
 			send_tlv_list(sockfd, from, size_from, count, tlv_list);
 			printf("***************************************************\n");
+			free_tlv_list(tlv_list);
 			pointer = &tlv_list;
 			count = 0;
 		}
@@ -171,6 +153,7 @@ int respond_to_network_state_req(int sockfd, struct sockaddr_in6 *from, size_t s
     	printf("Envoi de %d Node Hash : \n", count);
     	send_tlv_list(sockfd, from, size_from, count, tlv_list);
     	printf("***************************************************\n");
+    	free_tlv_list(tlv_list);
     }
 	return 0;
 }
@@ -194,7 +177,6 @@ void *build_res_node_hash(struct tlv_t *tlv, struct pstate_t *peer_state) {
 		return new_node_state_request(tlv->body.nodehash_body->node_id);
 	}
 	return NULL;
-
 }
 
 
@@ -357,7 +339,7 @@ void respond_to_dtg (struct dtg_t *dtg, int sockfd, struct sockaddr_in6 *from, s
 
 			send_tlv_list(sockfd, from, size_from, tlv_count, response_tlv_list);
 			printf("***************************************************\n");
-			response_tlv_list = NULL; 
+			free_tlv_list(response_tlv_list);
 			pointer = &response_tlv_list;
 			*pointer = response_tlv;
 			size_tlv_list = (*pointer)->length + TLV_HEADER;
@@ -384,6 +366,7 @@ void respond_to_dtg (struct dtg_t *dtg, int sockfd, struct sockaddr_in6 *from, s
 		}
 
 		send_tlv_list(sockfd, from, size_from, tlv_count, response_tlv_list);
+		free_tlv_list(response_tlv_list);
 		printf("***************************************************\n");
 
 	}

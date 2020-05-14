@@ -36,6 +36,10 @@ int check_datagram_header(char *dtg) {
 
 void *new_tlv() {
 	struct tlv_t *tlv = malloc(sizeof(struct tlv_t));
+	if(tlv == NULL) {
+		perror("mallc");
+		exit(1);
+	}
 	memset(tlv, 0, sizeof(struct tlv_t));
 	return tlv;
 }
@@ -68,6 +72,11 @@ void *new_neighbour(struct in6_addr IP, in_port_t port) {
 	tlv->length = 18; 
 
 	struct neighbour_b *neighbour_body = malloc(sizeof(struct neighbour_b));
+	if(neighbour_body == NULL) {
+		perror("malloc");
+		exit(1);
+	}
+
 	memset(neighbour_body, 0, sizeof(struct neighbour_b));
 	neighbour_body->iPv6_addr = IP;
 	neighbour_body->port = port;
@@ -82,6 +91,11 @@ void *new_network_hash(char network_hash[16]) {
 	tlv->length = 16;
 
 	struct nethash_b *nethash_body = malloc(sizeof(struct nethash_b));
+	if(nethash_body == NULL) {
+		perror("malloc");
+		exit(1);
+	}
+
 	memset(nethash_body, 0, sizeof(struct nethash_b));
 	memcpy(nethash_body->network_hash, network_hash, 16);
 
@@ -103,6 +117,11 @@ void *new_node_hash(uint64_t node_id, uint16_t seqno, char nodehash[16]) {
 	tlv->length = 26;
 
 	struct nodehash_b *nodehash_body = malloc(sizeof(struct nodehash_b));
+	if(nodehash_body == NULL) {
+		perror("malloc");
+		exit(1);
+	}
+
 	memset(nodehash_body, 0, sizeof(struct nodehash_b));
 	nodehash_body->node_id = node_id;
 	nodehash_body->seq_no = seqno;
@@ -118,6 +137,11 @@ void *new_node_state_request(uint64_t node_id) {
 	tlv->length = 8;
 
 	struct nodestatereq_b *nodestatereq_body = malloc(sizeof(struct nodestatereq_b));
+	if(nodestatereq_body == NULL) {
+		perror("malloc");
+		exit(1);
+	}
+
 	memset(nodestatereq_body, 0, sizeof(struct nodestatereq_b));
 	nodestatereq_body -> node_id = node_id;
 
@@ -134,6 +158,11 @@ void *new_node_state(uint64_t node_id, uint16_t seq_no, char node_hash[16], char
 	tlv->length = 26 + strlen(data);
 
 	struct nodestate_b *nodestate_body = malloc(sizeof(struct nodestate_b));
+	if(nodestate_body == NULL) {
+		perror("malloc");
+		exit(1);
+	}
+
 	memset(nodestate_body, 0, sizeof(struct nodestate_b));
 	nodestate_body->node_id = node_id;
 	nodestate_body->seq_no = seq_no;
@@ -150,6 +179,11 @@ void *new_warning(char *message) {
 	tlv->length = strlen(message);
 
 	struct warning_b *warning_body = malloc(sizeof(struct warning_b));
+	if(warning_body == NULL) {
+		perror("malloc");
+		exit(1);
+	}
+
 	memset(warning_body, 0, sizeof(struct warning_b));
 	memcpy(warning_body->message, message, strlen(message));
 
@@ -221,6 +255,11 @@ void *write_tlv(struct tlv_t *tlv, char *addr) {
 
 void *init_dtg(size_t size_dtg) {
 	char *dtg = malloc(size_dtg);
+	if(dtg == NULL) {
+		perror("malloc");
+		exit(1);
+	}
+
 	memset(dtg, 0, size_dtg);
 	uint8_t magic = 0x5F;
     uint8_t ver = 0x1;
@@ -324,6 +363,10 @@ int unpack_next_tlv(char *from, struct tlv_t *tlv, size_t size_left_dtg) {
 
 		case 3 :
 			tlv->body.neighbour_body = malloc(sizeof(struct neighbour_b));
+			if(tlv->body.neighbour_body == NULL) {
+				perror("malloc");
+				exit(1);
+			}
 			memset(tlv->body.neighbour_body, 0, sizeof(struct neighbour_b));
 			memcpy(&tlv->body.neighbour_body->iPv6_addr, from + 2, 16);
 			memcpy(&tlv->body.neighbour_body->port, from + 18, 2);
@@ -331,12 +374,20 @@ int unpack_next_tlv(char *from, struct tlv_t *tlv, size_t size_left_dtg) {
 
 		case 4 :
 			tlv->body.nethash_body = malloc(sizeof(struct nethash_b));
+			if(tlv->body.nethash_body == NULL) {
+				perror("malloc");
+				exit(1);
+			}
 			memset(tlv->body.nethash_body, 0, sizeof(struct nethash_b));
 			memcpy(tlv->body.nethash_body->network_hash, from + 2, 16);
 			break;
 
 		case 6 :
 			tlv->body.nodehash_body = malloc(sizeof(struct nodehash_b));
+			if(tlv->body.nodehash_body == NULL) {
+				perror("malloc");
+				exit(1);
+			}
 			memset(tlv->body.nodehash_body, 0, sizeof(struct nodehash_b));
 			memcpy(&tlv->body.nodehash_body->node_id, from + 2, 8);
 			memcpy(&tlv->body.nodehash_body->seq_no, from + 10, 2);
@@ -345,12 +396,20 @@ int unpack_next_tlv(char *from, struct tlv_t *tlv, size_t size_left_dtg) {
 
 		case 7 :
 			tlv->body.nodestatereq_body = malloc(sizeof(struct nodestatereq_b));
+			if(tlv->body.nodestatereq_body == NULL) {
+				perror("malloc");
+				exit(1);
+			}
 			memset(tlv->body.nodestatereq_body, 0, sizeof(struct nodestatereq_b));
 			memcpy(&tlv->body.nodestatereq_body->node_id, from + 2, 8);
 			break;
 
 		case 8 : 
 			tlv->body.nodestate_body = malloc(sizeof(struct nodestate_b));
+			if(tlv->body.nodestate_body == NULL) {
+				perror("malloc");
+				exit(1);
+			}
 			memset(tlv->body.nodestate_body, 0, sizeof(struct nodestate_b));
 			memcpy(&tlv->body.nodestate_body->node_id, from + 2, 8);
 			memcpy(&tlv->body.nodestate_body->seq_no, from + 10, 2);
@@ -360,6 +419,10 @@ int unpack_next_tlv(char *from, struct tlv_t *tlv, size_t size_left_dtg) {
 
 		case 9 :
 			tlv->body.warning_body = malloc(sizeof(struct warning_b));
+			if(tlv->body.warning_body == NULL) {
+				perror("malloc");
+				exit(1);
+			}
 			memset(tlv->body.warning_body, 0, sizeof(struct warning_b));
 			memcpy(tlv->body.warning_body->message, from + 2, tlv->length);
 			break;
@@ -380,8 +443,12 @@ void *unpack_dtg(char *buf, int size_dtg) {
 	if(size_dtg < DTG_HEADER) return NULL;
 
 	struct dtg_t *dtg = malloc(sizeof(struct dtg_t));
-	memset(dtg, 0, sizeof(struct dtg_t));
+	if(dtg == NULL) {
+		perror("malloc");
+		exit(1);
+	}
 
+	memset(dtg, 0, sizeof(struct dtg_t));
 	memcpy(&dtg->magic, buf, 1);
 	memcpy(&dtg->version, buf + 1, 1);
 	memcpy(&dtg->body_length, buf + 2, 2);
@@ -405,6 +472,11 @@ void *unpack_dtg(char *buf, int size_dtg) {
 		dtg->nb_tlv += 1;
 		
 		*tlv = malloc(sizeof(struct tlv_t));
+		if(tlv == NULL) {
+			perror("malloc");
+			exit(1);
+		}
+
 		memset(*tlv, 0, sizeof(struct tlv_t));
 
 		if (unpack_next_tlv(buf, *tlv, decount) < 0) {
@@ -421,6 +493,67 @@ void *unpack_dtg(char *buf, int size_dtg) {
 	return dtg;
 }
 
+// ----------------------------------------------------------------------------
+// ----------------------------------- FREE -----------------------------------
+
+/*Libère la mémoire allouée à un tlv*/
+void free_tlv(struct tlv_t *tlv) {
+	if (tlv == NULL) return;
+	switch(tlv->type) {
+		case 1 :
+		case 2 :
+		case 5 :
+			break;
+
+		case 3 :
+			free(tlv->body.neighbour_body);
+			break;
+
+		case 4 :
+			free(tlv->body.nethash_body);
+			break;
+
+		case 6 :
+			free(tlv->body.nodehash_body);
+			break;
+
+		case 7 :
+			free(tlv->body.nodestatereq_body);
+			break;
+
+		case 8 : 
+			free(tlv->body.nodestate_body);
+			break;
+
+		case 9 :
+			free(tlv->body.warning_body);
+			break;
+
+		default :
+			break;
+	}
+	free(tlv);
+}
+
+
+/*Libère la mémoire de chaque noeud d'une liste chaînée de tlv. */
+void free_tlv_list(struct tlv_t *tlv_list) {
+	struct tlv_t *node = tlv_list;
+	struct tlv_t *temp;
+	while(node != NULL) {
+		temp = node;
+		node = node->next;
+		free_tlv(temp);
+	}
+	tlv_list = NULL;
+}
+
+
+/*Libère la mémoire d'un dtg et des tlv associés */
+void free_dtg(struct dtg_t *dtg) {
+	free_tlv_list(dtg->tlv_list);
+	free(dtg);
+}
 
 // ----------------------------------------------------------------------------
 // -------------------------------- AFFICHAGHE --------------------------------

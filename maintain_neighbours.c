@@ -30,12 +30,10 @@ void update_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 fr
 
 
 	//Si on a moins de 15 voisins et find_neighbour renvoie -1 alors le voisin n'existe pas et il faut l'ajouter
-	if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) < 15){
+	if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) < 15) {
 
-
-			rc=add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from, 0);
-			if(rc == 0)
-			{
+			rc = add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from, 0);
+			if(rc == 0) {
 				printf("D:111 - voisin transitoire ajouté!! \n");
 
 				char IP[INET6_ADDRSTRLEN];
@@ -74,10 +72,10 @@ void send_neighbour_req(int socket, struct pstate_t * peer_state){
 		perror("sendto() error");
 		//exit(2);
 	}
-	else {
-		printf("TLV Neighbour Request Envoyé à l'adresse IP : %s\n", IP);
-	}
+	else printf("TLV Neighbour Request Envoyé à l'adresse IP : %s\n", IP);
 
+	free_tlv(neighbour_req);
+	free(datagram);
 }
 
 
@@ -86,7 +84,7 @@ void send_neighbour_req(int socket, struct pstate_t * peer_state){
 int send_network_hash(int socket, struct pstate_t * peer_state){
 
     //Création du datagramme contenant le TLV network hash
-	struct tlv_t *network_hash=new_network_hash(peer_state->network_hash) ;
+	struct tlv_t *network_hash = new_network_hash(peer_state->network_hash) ;
 	int datagram_length;
 	char *datagram = build_tlvs_to_char(&datagram_length, 1, network_hash);
 
@@ -105,8 +103,10 @@ int send_network_hash(int socket, struct pstate_t * peer_state){
 		}
 	}
 
+	free_tlv(network_hash);
+	free(datagram);
+
 	return 1;
-	
-	
+
 }
 

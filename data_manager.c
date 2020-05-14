@@ -25,9 +25,11 @@ void *create_data_table() {
 Si la clé node_id existe déjà, les champs seq_no, data et hash_node de la valeur associée sont mis à jour. */
 int add_data(GHashTable *data_table, uint64_t node_id, uint16_t seq_no, char data[192]) {
 	uint64_t *key = malloc(sizeof(uint64_t));
+	if (key == NULL) goto malloc;
 	memcpy(key, &node_id, 8);
 
 	struct data_t *value = malloc(sizeof(struct data_t));
+	if (value == NULL) goto malloc;
 	memset(value, 0, sizeof(struct data_t));
 	memcpy(&value->seq_no, &seq_no, 2);
 	memcpy(value->data, data, 192);
@@ -37,6 +39,10 @@ int add_data(GHashTable *data_table, uint64_t node_id, uint16_t seq_no, char dat
 
 	g_hash_table_insert(data_table, key, value); 
 	return 0;
+
+	malloc :
+		perror("malloc");
+		exit(1);
 }
 
 

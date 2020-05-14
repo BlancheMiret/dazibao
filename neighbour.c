@@ -1,3 +1,4 @@
+
 #include <time.h>
 #include <stdio.h>
 #include <string.h>
@@ -75,7 +76,7 @@ int sweep_neighbour_table(struct neighbour *neighbour_table) {
 	struct timeval tp;
 	if (gettimeofday(&tp, NULL) < 0) {
 		perror("gettimeofday");
-		exit(1);
+		return -1;
 	}
 
 	int nb_deleted = 0;

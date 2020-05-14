@@ -95,6 +95,15 @@ void *build_tlvs_to_char2(int *size_dtg, int nbtlv, struct tlv_t *tlv_list);
 /* Prend un paquet reçu sur le réseau et constuit une struct dtgt_t contenant la liste chaînée de TLV du paquet */
 void *unpack_dtg(char *buf, int size_dtg);
 
+// ----------------------------------- FREE -----------------------------------
+
+/*Libère la mémoire de chaque noeud d'une liste chaînée de tlv. */
+void free_tlv_list(struct tlv_t *tlv_list);
+/*Libère la mémoire d'un dtg et des tlv associés */
+void free_dtg(struct dtg_t *dtg);
+/*Libère la mémoire d'un tlv et de son body */
+void free_tlv(struct tlv_t *tlv);
+
 // -------------------------------- AFFICHAGHE --------------------------------
 
 void print_tlv(struct tlv_t *tlv, int short_version);

@@ -9,9 +9,9 @@
 // -------------------------------- STRUCTURE ---------------------------------
 
 struct neighbour {
-		int					exists;
-		int 				permanent;
-		struct timeval		last_reception;
+		int							exists;
+		int 						permanent;
+		struct timeval				last_reception;
 		struct sockaddr_storage		socket_addr;
 };
 
