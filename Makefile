@@ -19,7 +19,7 @@ dazibao : $(OBJS)
 	@$(CC) -c $< -o $@ $(CFLAGS)
 
 dazibao.o : dazibao.c inondation.h maintain_neighbours.h tlv_manager.h data_manager.h neighbour.h hash.h peer_state.h 
-inondation.o : inondation.c inondation.h tlv_manager.h data_manager.h neighbour.h hash_network.h peer_state.h
+inondation.o : inondation.c inondation.h tlv_manager.h data_manager.h neighbour.h hash_network.h hash.h peer_state.h
 maintain_neighbours.o : maintain_neighbours.c maintain_neighbours.h tlv_manager.h peer_state.h
 tlv_manager.o : tlv_manager.c tlv_manager.h hash.h
 data_manager.o : data_manager.c data_manager.h hash.h
