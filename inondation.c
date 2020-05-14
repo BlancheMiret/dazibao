@@ -41,7 +41,7 @@ int send_tlv_list(int sockfd, struct sockaddr_in6 *from, size_t size_from, int n
 		return rc; // ??
 	}
 
-	printf("\n--- DATAGRAMME JUST SENT TO\n");
+	printf("\n--- DATAGRAMME ENVOYE A \n");
 	char IP[INET6_ADDRSTRLEN];
 	inet_ntop(AF_INET6, &from->sin6_addr, IP, INET6_ADDRSTRLEN);
 	printf("IP : %s\n", IP);
@@ -96,7 +96,7 @@ int build_res_neighbour(struct tlv_t *tlv, int sockfd, struct pstate_t *peer_sta
 	printf("***************************************************\n");
 	char buf[INET6_ADDRSTRLEN];
 	inet_ntop(AF_INET6, &to.sin6_addr, buf, INET6_ADDRSTRLEN); 
-	printf("I:96  - Sending network hash to IP : %s\n", buf);
+	printf("Envoi d'un Network hash à l'adresse IP : %s\n", buf);
 	printf("***************************************************\n");
 	int rc = sendto(sockfd, dtg_char, size_dtg, 0, (struct sockaddr*)&to, sizeof(to));
 		if (rc < 0){
@@ -157,7 +157,7 @@ int respond_to_network_state_req(int sockfd, struct sockaddr_in6 *from, size_t s
 		if (count == 35) {
 			pointer = NULL;
 			printf("***************************************************\n");
-			printf("I:166 - Envoi de 35 Node Hash : \n");
+			printf("Envoi de 35 Node Hash : \n");
 			send_tlv_list(sockfd, from, size_from, count, tlv_list);
 			printf("***************************************************\n");
 			pointer = &tlv_list;
@@ -168,7 +168,7 @@ int respond_to_network_state_req(int sockfd, struct sockaddr_in6 *from, size_t s
     if (count != 0) {
     	pointer = NULL;
     	printf("***************************************************\n");
-    	printf("I:166 - Envoi de %d Node Hash : \n", count);
+    	printf("Envoi de %d Node Hash : \n", count);
     	send_tlv_list(sockfd, from, size_from, count, tlv_list);
     	printf("***************************************************\n");
     }
@@ -349,7 +349,7 @@ void respond_to_dtg (struct dtg_t *dtg, int sockfd, struct sockaddr_in6 *from, s
 		if (size_tlv_list + response_tlv->length + TLV_HEADER > 1020) { 
 			struct tlv_t *test = response_tlv_list; 
 			printf("***************************************************\n");
-			printf("I:360 - Envoi d'une liste de TLVs : \n");
+			printf("Envoi d'une liste de TLVs : \n");
 			while(test != NULL) {
 				print_tlv(test, 1);
 				test = test->next;
@@ -377,7 +377,7 @@ void respond_to_dtg (struct dtg_t *dtg, int sockfd, struct sockaddr_in6 *from, s
 	if (response_tlv_list != NULL) {
 		struct tlv_t *test = response_tlv_list; // <----- DEBUG
 		printf("***************************************************\n");
-		printf("I:386 - Envoi d'une liste de TLVs : \n");
+		printf("Envoi d'une liste de TLVs : \n");
 		while(test != NULL) {
 			print_tlv(test, 1);
 			test = test->next;
