@@ -1,6 +1,23 @@
 #include "neighbour.h"
 
 
+//Affiche date annee/mois/jour heure:minutes:secondes
+
+void print_real_time(struct timeval tv){
+
+	struct tm* ptm;
+	char time_string[40];
+	long milliseconds;
+
+	//convertir timeval en struct tm
+	ptm = localtime (&tv.tv_sec);
+	//afficher la date annee/mois/jour heure:minutes:secondes
+	strftime (time_string, sizeof (time_string), "%Y-%m-%d %H:%M:%S", ptm);
+	printf ("%s.\n", time_string);
+}
+
+
+
 // Renvoie le nombre de voisins dans neighbour_table
 int get_nb_neighbour(struct neighbour *neighbour_table) { 
 	int count = 0;
@@ -20,7 +37,7 @@ int add_neighbour(struct neighbour *neighbour_table, struct sockaddr_storage *ke
 		perror("N:20  - Already 15 neighbour.\n");
 		return -1;
 	}
-    
+
 	struct timeval tp;
 	if (gettimeofday(&tp, NULL) < 0) {
 		perror("gettimeofday");
@@ -35,8 +52,8 @@ int add_neighbour(struct neighbour *neighbour_table, struct sockaddr_storage *ke
 	neighbour_table[i].socket_addr = *key;
 
 	char IP2[INET6_ADDRSTRLEN];
-    inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&neighbour_table[i].socket_addr)->sin6_addr), IP2, INET6_ADDRSTRLEN);
-    printf("N:39  - Voisin ajouté. IP : %s\n", IP2);
+	inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&neighbour_table[i].socket_addr)->sin6_addr), IP2, INET6_ADDRSTRLEN);
+	printf("N:39  - Voisin ajouté. IP : %s\n", IP2);
 
 	return 0;
 }
@@ -60,8 +77,8 @@ int struct_addr_equals(struct sockaddr_storage *x, struct sockaddr_storage *y) {
 		if (r != 0) {
 			char IP1[INET6_ADDRSTRLEN];
 			char IP2[INET6_ADDRSTRLEN];
-            inet_ntop(AF_INET6, &(x6->sin6_addr), IP1, INET6_ADDRSTRLEN);
-            inet_ntop(AF_INET6, &(y6->sin6_addr), IP2, INET6_ADDRSTRLEN);
+			inet_ntop(AF_INET6, &(x6->sin6_addr), IP1, INET6_ADDRSTRLEN);
+			inet_ntop(AF_INET6, &(y6->sin6_addr), IP2, INET6_ADDRSTRLEN);
             //printf("(IP from sockaddr_in6 *x6 ) THE IP ADDRESS IS : %s\n", IP1);
             //printf("(IP from sockaddr_in6 *y6 ) THE IP ADDRESS IS : %s\n", IP2);
 			return 0;
@@ -82,8 +99,8 @@ int find_neighbour(struct neighbour *neighbour_table, struct sockaddr_storage *k
 		if (struct_addr_equals(&neighbour_table[i].socket_addr, key)) {
 
 			return i;
+		}
 	}
-    }
 
 	return -1; // aucun voisin n'ayant cette adresse de socket n'est présent dans la liste des voisins
 }
@@ -92,6 +109,7 @@ int find_neighbour(struct neighbour *neighbour_table, struct sockaddr_storage *k
 // Met à jour le champ "last_reception" de la valeur associée à "key" dans "neighbour_table" avec le temps courant 
 // Retourne -1 en cas d'erreur (erreur de gettimeofday, ou bien voisin pas présent dans la table), 0 sinon 
 int update_last_reception(struct neighbour *neighbour_table, struct sockaddr_storage *key) { 
+	
 	int i = find_neighbour(neighbour_table, key);
 
 	if (i == -1) {
@@ -139,20 +157,21 @@ void display_neighbour(struct neighbour *n) {
 
 	switch(n->socket_addr.ss_family) {
 		case AF_INET:
-			inet_ntop(AF_INET, &(((struct sockaddr_in *)k)->sin_addr), IP, INET_ADDRSTRLEN);
-			family = "iPv4";
-			port = ((struct sockaddr_in *)k)->sin_port;
-			break;
+		inet_ntop(AF_INET, &(((struct sockaddr_in *)k)->sin_addr), IP, INET_ADDRSTRLEN);
+		family = "iPv4";
+		port = ((struct sockaddr_in *)k)->sin_port;
+		break;
 		case AF_INET6:
-			inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)k)->sin6_addr), IP, INET6_ADDRSTRLEN);
-			family = "iPv6";
-			port = ((struct sockaddr_in6 *)k)->sin6_port;
-			break;
+		inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)k)->sin6_addr), IP, INET6_ADDRSTRLEN);
+		family = "iPv6";
+		port = ((struct sockaddr_in6 *)k)->sin6_port;
+		break;
 	}
 
 	printf("--------- NEIGHBOUR --------- \n");
 	printf("Is this neighbour permanent ? : %d\n", n->permanent);
 	printf("Time of last reception : \n");
+	print_real_time(n->last_reception);
 	printf("Seconds since Jan. 1, 1970 : %ld\n", n->last_reception.tv_sec);
 	printf("Microseconds since Jan. 1, 1970 : %d\n", (int)n->last_reception.tv_usec);
 	printf("- Socket informations\n");
