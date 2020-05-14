@@ -10,7 +10,7 @@
 #include <net/if.h>
 #include "maintain_neighbours.h"
 #include "tlv_manager.h"
-
+#include "debug.h"
 
 //Compare deux adresses ipv6, si ils sont égaux retourne 0
 
