@@ -339,7 +339,7 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 
 						respond_to_dtg(dtg, sockfd, &from, from_len, peer_state); // <---- INONDATION 
 
-						maintain_neighbour_table(peer_state, from);
+						update_neighbour_table(peer_state, from);
 					}
 
 				}
