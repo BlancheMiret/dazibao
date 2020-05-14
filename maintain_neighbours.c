@@ -28,11 +28,9 @@ void update_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 fr
 
 	int rc;
 
-	printf("A\n");
 
 	//Si on a moins de 15 voisins et find_neighbour renvoie -1 alors le voisin n'existe pas et il faut l'ajouter
 	if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) < 15){
-		printf("B\n");
 
 
 			rc=add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from, 0);

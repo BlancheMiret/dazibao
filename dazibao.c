@@ -190,9 +190,6 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 	struct addrinfo *ap;
 
 
-/* IPv4 */
-	char ipv4[INET_ADDRSTRLEN];
-	struct sockaddr_in *addr4;
 
 /* IPv6 */
 	char ipv6[INET6_ADDRSTRLEN];
@@ -206,16 +203,7 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 			close(sockfd);
 			continue;
 		}
-		/**
-		if (ap->ai_addr->sa_family == AF_INET) {
-			addr4 = (struct sockaddr_in *) ap->ai_addr;
-			inet_ntop(AF_INET, &addr4->sin_addr, ipv4, INET_ADDRSTRLEN);
-			printf("IP du premier voisin permanent ---> %s\n", ipv4);
-			printf("*************************\n");		
 
-			//On ajoute au départ l'adresse IPV4 du voisin permanent
-			add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)addr4, 1);
-		}**/
 
 		if (ap->ai_addr->sa_family == AF_INET6) {
 			addr6 = (struct sockaddr_in6 *) ap->ai_addr;
@@ -321,7 +309,7 @@ void event_loop(struct pstate_t * peer_state, int sockfd){
 
 
 	//SIGALRM: ce signal survient lorsqu’une alarme définie par la fonction alarm(..) a expiré
-	signal( SIGALRM, handle_alarm ); 
+	 if (signal(SIGALRM, handle_alarm) == SIG_ERR) printf("can't catch SIGALRM\n");; 
 	//Alarme qui se déclenche 
 	alarm(20);
 
