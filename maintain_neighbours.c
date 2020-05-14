@@ -32,18 +32,16 @@ void update_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 fr
 	//Si on a moins de 15 voisins et find_neighbour renvoie -1 alors le voisin n'existe pas et il faut l'ajouter
 	if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) == -1 &&  get_nb_neighbour(peer_state->neighbour_table) < 15) {
 
-			rc = add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from, 0);
-			if(rc == 0) {
-				printf("voisin transitoire ajouté!! \n");
-
-				char IP[INET6_ADDRSTRLEN];
-				inet_ntop(AF_INET6, &(from.sin6_addr), IP, INET6_ADDRSTRLEN);
-				printf("L'adresse IP du voisin transitoire ajouté est : %s\n", IP);
-			}
+		add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from, 0);
 	
 		//Affichage de la table de voisins :
-		display_neighbour_table(peer_state->neighbour_table);
-		printf("Nombre voisins dans table des voisins : %d\n", get_nb_neighbour(peer_state->neighbour_table));
+		if(DEBUG){
+			
+			printf("[DEBUG] Nombre voisins dans table des voisins : %d\n", get_nb_neighbour(peer_state->neighbour_table));
+			printf("[DEBUG] ---------- AFFICHAGE DE LA TABLE DES VOISINS ----------\n");
+			display_neighbour_table(peer_state->neighbour_table);
+			
+		}
 	}
 
 	//Si le voisin est déjà présent mettre à jour la date de dernière réception de paquet
