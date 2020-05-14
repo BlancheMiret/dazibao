@@ -31,7 +31,7 @@ ln -s /usr/local/opt/openssl/lib/libssl.1.0.0.dylib /usr/local/lib/
 ```
 
 ### Usage
-
+En se plaçant dans le répertoire `src`
 ```bash
 make
 ```
