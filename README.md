@@ -15,6 +15,8 @@ brew install glib
 ```
 
 et `openssl`
+- Sur Linux
+sudo apt-get install libglib2.0-dev
 
 - Avec HomeBrew sur MacOs :
 ```bash
