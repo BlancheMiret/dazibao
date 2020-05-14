@@ -152,6 +152,10 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 		//if (sockfd != -1) break;
 	}
 
+	if(sockfd<0){
+		perror("socket error: ");
+	}
+
 	printf("NOMBRE DE VOISINS  %d\n",get_nb_neighbour(peer_state->neighbour_table));
 	display_neighbour_table(peer_state->neighbour_table);
 
@@ -168,6 +172,10 @@ int socket_parameters(int sockfd){
 	int rc;
 
 	sockfd = socket(AF_INET6, SOCK_DGRAM, 0);
+
+	if(sockfd<0){
+		perror("socket error: ");
+	}
 	// On lie la socket au port 8080
 	struct sockaddr_in6 peer;
 	memset (&peer, 0, sizeof(peer));
@@ -366,7 +374,7 @@ int main(int argc, char * argv[]) {
 
 	}
 
-	if(strcmp (argv[3],"debug") == 0){
+	if(argc == 4 && strcmp (argv[3],"debug") == 0){
        DEBUG =1;
        //printf("DEBUG value= %d\n", debug );
    }
