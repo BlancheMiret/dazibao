@@ -24,7 +24,6 @@ int compare_addr(struct in6_addr *IP1, struct in6_addr *IP2) {
 }
 
 //Fonction qui vérifie les conditions d'ajout d'un voisin de la partie 4.2 avant de l'ajouter
-//Changer le nom peut-être ?
 void update_neighbour_table(struct pstate_t * peer_state, struct sockaddr_in6 from){
 
 	int rc;
@@ -66,8 +65,8 @@ void send_neighbour_req(int socket, struct pstate_t * peer_state){
 
 	struct neighbour * neighbour_choosen = pick_neighbour(peer_state->neighbour_table);
 	
-	char IP2[INET6_ADDRSTRLEN];
-	inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&neighbour_choosen->socket_addr)->sin6_addr), IP2, INET6_ADDRSTRLEN);
+	char IP[INET6_ADDRSTRLEN];
+	inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&neighbour_choosen->socket_addr)->sin6_addr), IP, INET6_ADDRSTRLEN);
 
 	struct tlv_t *neighbour_req = new_neighbour_request();
 	int datagram_length;
@@ -78,7 +77,7 @@ void send_neighbour_req(int socket, struct pstate_t * peer_state){
 		//exit(2);
 	}
 	else {
-		printf("D:75  - TLV Neighbour Request Envoyé à l'adresse IP : %s\n", IP2);
+		printf("TLV Neighbour Request Envoyé à l'adresse IP : %s\n", IP);
 	}
 
 }
