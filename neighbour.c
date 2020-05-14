@@ -121,19 +121,13 @@ int find_neighbour(struct neighbour *neighbour_table, struct sockaddr_storage *k
 
 
 /* Renvoie l'adresse d'un voisin choisi au hasard dans neighbour_table */
-struct neighbour * pick_neighbour(struct neighbour *neighbour_table){ // <------------- à modifier !!!!
-
-	struct neighbour * neighbour_choosen = malloc(sizeof(struct neighbour));
+struct neighbour * pick_neighbour(struct neighbour *neighbour_table){ 
 	srand(time(NULL));
-	while(1){
-		int rand_num = rand()%((14+1)-0) + 0;
-		//printf("%d\n",rand_num);
-		if (neighbour_table[rand_num].exists == 1){
-			neighbour_choosen=&neighbour_table[rand_num];
-			break;
-		}
+	while(1) {
+		int r = rand()%15;
+		if(neighbour_table[r].exists) return &neighbour_table[r];
+
 	}
-	return neighbour_choosen;
 }
 
 
