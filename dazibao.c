@@ -1,31 +1,32 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <unistd.h>
-#include <errno.h>
+//#include <stdio.h>
+//#include <string.h>
+//#include <stdlib.h>
+//#include <stdbool.h>
+//#include <unistd.h>
+//#include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netdb.h>
-#include <sys/time.h>
-#include <time.h>
-#include <stdint.h>
-#include <arpa/inet.h>
-#include <inttypes.h>
+//#include <netdb.h>
+//#include <sys/time.h>
+//#include <time.h>
+//#include <stdint.h>
+//#include <arpa/inet.h>
+//#include <inttypes.h>
 #include <fcntl.h>
-#include <sys/select.h>
-#include <net/if.h>
-#include <locale.h>
-#include <openssl/sha.h>
+//#include <sys/select.h>
+//#include <net/if.h>
+//#include <locale.h>
+//#include <openssl/sha.h>
 #include <glib.h>
 #include <glib/gprintf.h>
-#include "hash.h"
-#include "data_manager.h"
-#include "neighbour.h" // <--- ATTENTION NOUVEAU MODULE DES VOISINS
-#include "tlv_manager.h"
+
 #include "inondation.h"
-#include "peer_state.h"
 #include "maintain_neighbours.h"
+#include "tlv_manager.h"
+#include "data_manager.h"
+#include "neighbour.h" 
+#include "hash.h"
+#include "peer_state.h"
 
 #define SIZE 1024
 
