@@ -31,6 +31,7 @@
 
 
 int DEBUG = 0;
+int DETAILS = 0;
 
 //variable globale pour notifier la capture d'un signal
 volatile sig_atomic_t alarm_val = false;
@@ -53,6 +54,11 @@ int main(int argc, char * argv[]) {
 
 	if(argc == 4 && strcmp (argv[3],"debug") == 0){
 		DEBUG = 1;
+		
+	}
+
+	if(argc == 4 && strcmp (argv[3],"details") == 0){
+		DETAILS = 1;
 		
 	}
 

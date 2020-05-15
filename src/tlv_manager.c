@@ -9,7 +9,7 @@
 
 #include "hash.h"
 #include "tlv_manager.h"
-
+#include "debug.h"
 
 // ----------------------------------------------------------------------------
 // -------------------------- CHECK DATAGRAME HEADER --------------------------
@@ -706,7 +706,7 @@ void print_dtg(struct dtg_t *dtg, int short_version) {
     printf("Nb tlv in dtg : %d\n", dtg->nb_tlv);
     struct tlv_t *tlv = dtg->tlv_list;
     for(int i = 0; i < dtg->nb_tlv; i ++) {
-    	if (short_version) print_tlv(tlv, 1);
+    	if (short_version && DETAILS == 0) print_tlv(tlv, 1);
     	else print_tlv(tlv, 0);
     	tlv = tlv -> next; 
     }
