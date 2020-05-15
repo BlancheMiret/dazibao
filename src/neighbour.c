@@ -94,7 +94,7 @@ int sweep_neighbour_table(struct neighbour *neighbour_table) {
 
 /* Renvoie 1 si les x et y représentent la même adresse de socket, 0 sinon */
 int struct_addr_equals(struct sockaddr_storage *x, struct sockaddr_storage *y) {
-	if (x->ss_family != y->ss_family) return 0; // FALSE
+	if (x->ss_family != y->ss_family) return 0; 
 
 	if (x->ss_family == AF_INET) {
 		struct sockaddr_in *x4 = (void*)x;

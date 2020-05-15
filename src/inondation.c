@@ -327,7 +327,6 @@ void respond_to_dtg (struct dtg_t *dtg, int sockfd, struct sockaddr_in6 *from, s
 			continue;
 		}
 
-		// Si il n'y a pas assez de place pour ce nouveau tlv, procéder à l'envoi
 		if (size_tlv_list + response_tlv->length + TLV_HEADER > 1020) { 
 			struct tlv_t *test = response_tlv_list; 
 			printf("***************************************************\n");
