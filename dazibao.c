@@ -27,7 +27,7 @@
 
 #define SIZE 1024
 
-//IMPORTANT: revoir la partie gestion d'erreurs et le timeout de select
+
 
 
 int DEBUG = 0;
@@ -53,7 +53,7 @@ int main(int argc, char * argv[]) {
 
 	if(argc == 4 && strcmp (argv[3],"debug") == 0){
 		DEBUG = 1;
-		//printf("DEBUG value= %d\n", debug );
+		
 	}
 
 
@@ -64,7 +64,7 @@ int main(int argc, char * argv[]) {
 	struct pstate_t * peer_state = peer_state_init();
 	char node_hash[16];
 	hash_node(peer_state->node_id, peer_state->num_seq, peer_state->data, node_hash);
-	//print_hash(node_hash);
+	
 
 	// ----------------------------------
 
@@ -129,7 +129,8 @@ struct pstate_t * peer_state_init(){
 	// DATA ET NUMÉRO DE SÉQUENCE 
 	char *data = "J'ai passé une excellente soirée mais ce n'était pas celle-ci.";
 	memcpy(peer_state->data, data, strlen(data));
-	peer_state->num_seq = htons(0x3E0E); // 0x3D = 61 --- 0x3E08 = 15880 
+	peer_state->num_seq = htons(0x3E0E); 
+	// 0x3D = 61 --- 0x3E08 = 15880 
 	//0x3E0E = 15886
 
 	// -- ID DU NOEUD -- 
@@ -160,7 +161,7 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET6;
 	hints.ai_socktype = SOCK_DGRAM;
-	//hints.ai_flags = AI_V4MAPPED|AI_ALL;
+	hints.ai_flags = AI_V4MAPPED|AI_ALL;
 	hints.ai_protocol = 0;
 
 	struct addrinfo *dest_info;
@@ -196,7 +197,7 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 			add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)addr6, 1);
 		}
 
-		//if (sockfd != -1) break;
+		
 	}
 
 	if(sockfd < 0){
@@ -223,7 +224,7 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 int socket_parameters(int sockfd){
 
 	if(DEBUG) printf("[DEBUG] Paramétrage de la socket \n");
-	//int sockfd;
+
 	int rc;
 
 	sockfd = socket(AF_INET6, SOCK_DGRAM, 0);
@@ -303,7 +304,7 @@ void event_loop(struct pstate_t *peer_state, int sockfd){
 
 				rc = sweep_neighbour_table(peer_state->neighbour_table);
 
-				//display_neighbour_table(peer_state->neighbour_table);
+			
 				if(DEBUG){
 					printf("[DEBUG] sweep_neighbour_table, il reste %d voisins.\n", get_nb_neighbour(peer_state->neighbour_table));
 					printf("[DEBUG] Nombre de voisins supprimés: %d\n", rc);
@@ -334,8 +335,8 @@ void event_loop(struct pstate_t *peer_state, int sockfd){
 			char recvMsg[SIZE];
 			memset(recvMsg, '\0', SIZE);
 
-			//timeout = 50 secondes 
-			int to = 50;
+
+			int to = 0;
 			struct timeval timeout = {to,0};
 
 			int sel = select(sockfd + 1, &readfds, NULL, NULL, &timeout);
@@ -354,10 +355,10 @@ void event_loop(struct pstate_t *peer_state, int sockfd){
 					rc = recvfrom(sockfd, recvMsg, SIZE, 0, (struct sockaddr*)&from, &from_len);
 
 					if(rc < 0) {
-						if(errno == EAGAIN) ; //return 1;
-						else {
-							perror("recvfrom : ");
-						}
+
+						perror("recvfrom : ");
+						continue;
+						
 					}
 
 					else {
@@ -397,9 +398,6 @@ void event_loop(struct pstate_t *peer_state, int sockfd){
 				}
 			}
 
-			if(sel == 0 ) {
-			//Timeout pour le recvfrom, faire un goto?
-		}
 	}
 }
 
