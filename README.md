@@ -40,12 +40,24 @@ En se plaçant dans le répertoire `src`
 make
 ```
 ```bash
-./dazibao <hostname> <port> [debug]
+./dazibao <hostname> <port>
 ```
 Exemple :
 ```bash
 ./dazibao jch.irif.fr 1212
 ```
+Pour lancer avec le mode debug:
+
+```bash
+./dazibao <hostname> <port> debug
+```
+
+Pour lancer et avoir une vue détaillée des TLVs reçus:
+
+```bash
+./dazibao <hostname> <port> details
+```
+
 
 ##### Auteurs :
 - CHEKROUN Hiba-Asmaa
