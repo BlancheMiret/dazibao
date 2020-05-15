@@ -40,7 +40,7 @@ En se plaçant dans le répertoire `src`
 make
 ```
 ```bash
-./dazibao <hostname> <port>
+./dazibao <hostname> <port> [debug]
 ```
 Exemple :
 ```bash

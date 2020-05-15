@@ -247,7 +247,6 @@ void *write_tlv(struct tlv_t *tlv, char *addr) {
 
 	if (tlv -> type != 0) addr = addr + tlv->length + TLV_HEADER; 
 	else addr = addr + 1;
-	//free(tlv); // <------------------------- BESOIN DE LES SUPPRIMER À UN MOMENT OÙ UN AUTRE
 
 	return addr;
 }
@@ -273,11 +272,9 @@ void *init_dtg(size_t size_dtg) {
 
 void *build_tlvs_to_char(int *size_dtg, int nbtlv, ...) { 
 	va_list valist;
-	*size_dtg = 0; //sans compter le header
+	*size_dtg = 0; 
 	struct tlv_t *tlv;
 	va_start(valist, nbtlv);
-
-	// --- CALCULER LA TAILLE FINALE DU DATAGRAMME ET L'ÉCRIRE À L'ADRESSE size_dtg; // <----- QUE FAIRE SI TAILLE > 1024 ??
 
 	for(int i = 0; i < nbtlv; i++) {
 		tlv = va_arg(valist, struct tlv_t *);
@@ -286,19 +283,15 @@ void *build_tlvs_to_char(int *size_dtg, int nbtlv, ...) {
 	}
 
 	*size_dtg += DTG_HEADER;
-
-	// ---- CRÉER CHAINE DE CARACTÈRE ET INITIALISER LE HEADER
 	char *dtg = init_dtg(*size_dtg);
-
-    // ---- ÉCRIRE CONTENU DES TLV UN PAR UN
-
     char *begin_tlv = dtg + DTG_HEADER;
     va_start(valist, nbtlv);
 
     for(int i = 0; i < nbtlv; i++) {
     	tlv = va_arg(valist, struct tlv_t *);
-    	begin_tlv = write_tlv(tlv, begin_tlv); // <-- write_tlv modifie l'adresse pointée par begin_tlv
+    	begin_tlv = write_tlv(tlv, begin_tlv); 
     }
+    
 	return dtg; 
 }
 
