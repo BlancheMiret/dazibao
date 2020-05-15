@@ -27,9 +27,6 @@
 
 #define SIZE 1024
 
-
-
-
 int DEBUG = 0;
 int DETAILS = 0;
 
@@ -62,7 +59,6 @@ int main(int argc, char * argv[]) {
 		
 	}
 
-
 	int rc;
 
 	// ----- initialisation données -----
@@ -71,7 +67,6 @@ int main(int argc, char * argv[]) {
 	char node_hash[16];
 	hash_node(peer_state->node_id, peer_state->num_seq, peer_state->data, node_hash);
 	
-
 	// ----------------------------------
 
 	// ----- initialisation de la socket et ajout du voisin permanent -----
@@ -98,7 +93,6 @@ int main(int argc, char * argv[]) {
 
 				printf("Node state envoyé! \n");
 			}
-			
 		}
 	}
 
@@ -202,8 +196,6 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 			//On ajoute au départ l'adresse IPV6 du voisin permanent
 			add_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)addr6, 1);
 		}
-
-		
 	}
 
 	if(sockfd < 0){
@@ -216,7 +208,6 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 		printf("NOMBRE DE VOISINS  %d\n",get_nb_neighbour(peer_state->neighbour_table));	
      	printf("[DEBUG] ---------- AFFICHAGE DE LA TABLE DES VOISINS ----------\n");
 		display_neighbour_table(peer_state->neighbour_table);
-		
 	}
 
 	freeaddrinfo(dest_info);
@@ -230,9 +221,7 @@ int initialization(char * argv[],struct pstate_t * peer_state){
 int socket_parameters(int sockfd){
 
 	if(DEBUG) printf("[DEBUG] Paramétrage de la socket \n");
-
 	int rc;
-
 	sockfd = socket(AF_INET6, SOCK_DGRAM, 0);
 
 	if(sockfd < 0){
@@ -248,6 +237,7 @@ int socket_parameters(int sockfd){
 	//Paramétrage de la socket
 	int one = 1;
 	int size_one = sizeof one;
+
 	// Évite le temps mort
 	if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &one, size_one) < 0) {
 		perror("setsockopt SO_TIMESTAMP");
@@ -269,9 +259,7 @@ int socket_parameters(int sockfd){
 		exit_with_error(sockfd, NULL);
 	} 
 
-
 	/* Paramétrage pour que la socket soit en mode non bloquant */
-
 	rc = fcntl(sockfd, F_GETFL);
 	if(rc < 0) {
 		perror("fcntls - get"); 
@@ -308,104 +296,99 @@ void event_loop(struct pstate_t *peer_state, int sockfd){
 
 			if(DEBUG) printf("[DEBUG] --- 20 secondes se sont écoulées ! --- \n");
 
-				rc = sweep_neighbour_table(peer_state->neighbour_table);
-
+			rc = sweep_neighbour_table(peer_state->neighbour_table);
 			
-				if(DEBUG){
-					printf("[DEBUG] sweep_neighbour_table, il reste %d voisins.\n", get_nb_neighbour(peer_state->neighbour_table));
-					printf("[DEBUG] Nombre de voisins supprimés: %d\n", rc);
-				}
-
-				//ENVOI D'UN TLV NETWORK HASH
-				rc = send_network_hash(sockfd, peer_state);
-
-				if(DEBUG == 1 && rc == 1) printf("TLV NETWORK HASH envoyé à tous les voisins!\n");
-
-				//ENVOI D'UN TLV NEIGHBOUR REQUEST
-				//Si la table contient moins de 5 voisins,on envoie d'un TLV neighbour request à un voisin tiré au hasard 
-				if(get_nb_neighbour(peer_state->neighbour_table)< 5 && get_nb_neighbour(peer_state->neighbour_table) > 0 ){
-					send_neighbour_req(sockfd, peer_state);
-				}
-
-				alarm_val = false;
-				alarm(20);
+			if(DEBUG){
+				printf("[DEBUG] sweep_neighbour_table, il reste %d voisins.\n", get_nb_neighbour(peer_state->neighbour_table));
+				printf("[DEBUG] Nombre de voisins supprimés: %d\n", rc);
 			}
 
-			fd_set readfds;
-			FD_ZERO(&readfds);
-			FD_SET(sockfd, &readfds);
+			//ENVOI D'UN TLV NETWORK HASH
+			rc = send_network_hash(sockfd, peer_state);
 
-			struct sockaddr_in6 from;
-			memset(&from, 0, sizeof(from));
-			socklen_t from_len = sizeof(from);
-			char recvMsg[SIZE];
-			memset(recvMsg, '\0', SIZE);
+			if(DEBUG == 1 && rc == 1) printf("TLV NETWORK HASH envoyé à tous les voisins!\n");
 
-
-			int to = 0;
-			struct timeval timeout = {to,0};
-
-			int sel = select(sockfd + 1, &readfds, NULL, NULL, &timeout);
-
-			if(sel < 0) {
-				//interrompu par un signal
-				if (errno == EINTR) continue;
-				perror("Select failed");
-				exit_with_error(sockfd, peer_state);
+			//ENVOI D'UN TLV NEIGHBOUR REQUEST
+			//Si la table contient moins de 5 voisins,on envoie d'un TLV neighbour request à un voisin tiré au hasard 
+			if(get_nb_neighbour(peer_state->neighbour_table)< 5 && get_nb_neighbour(peer_state->neighbour_table) > 0 ){
+				send_neighbour_req(sockfd, peer_state);
 			}
 
-			//Si une réponse est arrivée sel = 1
-			if (sel > 0) {
+			alarm_val = false;
+			alarm(20);
+		}
 
-				if(FD_ISSET(sockfd, &readfds)){
-					rc = recvfrom(sockfd, recvMsg, SIZE, 0, (struct sockaddr*)&from, &from_len);
+		fd_set readfds;
+		FD_ZERO(&readfds);
+		FD_SET(sockfd, &readfds);
+		struct sockaddr_in6 from;
+		memset(&from, 0, sizeof(from));
+		socklen_t from_len = sizeof(from);
+		char recvMsg[SIZE];
+		memset(recvMsg, '\0', SIZE);
 
-					if(rc < 0) {
+		int to = 0;
+		struct timeval timeout = {to,0};
 
-						perror("recvfrom : ");
-						continue;
-						
+		int sel = select(sockfd + 1, &readfds, NULL, NULL, &timeout);
+
+		if(sel < 0) {
+			//interrompu par un signal
+			if (errno == EINTR) continue;
+			perror("Select failed");
+			exit_with_error(sockfd, peer_state);
+		}
+
+		//Si une réponse est arrivée sel = 1
+		if (sel > 0) {
+
+			if(FD_ISSET(sockfd, &readfds)){
+				rc = recvfrom(sockfd, recvMsg, SIZE, 0, (struct sockaddr*)&from, &from_len);
+
+				if(rc < 0) {
+					perror("recvfrom : ");
+					continue;
+				}
+
+				else {
+					printf("***************************************************\n");
+					printf("------- Message Reçu ! --------\n");
+				}
+
+				//On vérifie si l'entête est incorrecte
+				if(check_datagram_header(recvMsg)) {
+
+					char IP[INET6_ADDRSTRLEN];
+					inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&from)->sin6_addr), IP, INET6_ADDRSTRLEN);
+					printf("- Le message provient de l'IP : %s\n", IP);
+
+					//Si l'émetteur n'est pas présent et si la table de voisins contient déjà 15 entrées
+					if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) == -1 && get_nb_neighbour(peer_state->neighbour_table) == 15) {
+						if(DEBUG) printf("La table de voisin contient 15 entrées, le paquet est ignoré!\n");
 					}
 
-					else {
+					if(get_nb_neighbour(peer_state->neighbour_table) < 15){
+
+						struct dtg_t *dtg = unpack_dtg(recvMsg, rc);
+						if(dtg == NULL) {
+							if(DEBUG) printf("Retour de unpack_dtg à NULL : paquet ignoré\n");
+							continue;
+						}
+						
+						print_dtg_short(dtg);
 						printf("***************************************************\n");
-						printf("------- Message Reçu ! --------\n");
-					}
 
-					//On vérifie si l'entête est incorrecte
-					if(check_datagram_header(recvMsg)) {
-
-						char IP[INET6_ADDRSTRLEN];
-						inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&from)->sin6_addr), IP, INET6_ADDRSTRLEN);
-						printf("- Le message provient de l'IP : %s\n", IP);
-
-						//Si l'émetteur n'est pas présent et si la table de voisins contient déjà 15 entrées
-						if(find_neighbour(peer_state->neighbour_table, (struct sockaddr_storage*)&from) == -1 && get_nb_neighbour(peer_state->neighbour_table) == 15) {
-							if(DEBUG) printf("La table de voisin contient 15 entrées, le paquet est ignoré!\n");
-						}
-
-						if(get_nb_neighbour(peer_state->neighbour_table) < 15){
-
-							struct dtg_t *dtg = unpack_dtg(recvMsg, rc);
-							if(dtg == NULL) {
-								if(DEBUG) printf("Retour de unpack_dtg à NULL : paquet ignoré\n");
-								continue;
-							}
-						
-							print_dtg_short(dtg);
-							printf("***************************************************\n");
-
-							respond_to_dtg(dtg, sockfd, &from, from_len, peer_state); 
-							update_neighbour_table(peer_state, from);
+						respond_to_dtg(dtg, sockfd, &from, from_len, peer_state); 
+						update_neighbour_table(peer_state, from);
 							
-							free_dtg(dtg);
-						}
+						free_dtg(dtg);
 					}
 				}
 			}
-
+		}
 	}
 }
+
 
 void exit_with_error(int sockfd, struct pstate_t *peer_state) {
 	if(sockfd > 0) close(sockfd);
